@@ -5,44 +5,52 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { UserButton } from "@clerk/nextjs";
 import { MaturaLogo } from "@/components/MaturaLogo";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useTranslation, useLocale } from "@/lib/i18n";
 
-function formatDate(ts: number) {
-  return new Date(ts).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-}
+const DATE_LOCALES: Record<string, string> = { en: "en-GB", de: "de-DE", fr: "fr-FR" };
 
 export default function HomePage() {
   const router = useRouter();
   const projects = useQuery(api.projects.list);
+  const { t } = useTranslation();
+  const locale = useLocale();
+
+  function formatDate(ts: number) {
+    return new Date(ts).toLocaleDateString(DATE_LOCALES[locale] ?? "en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      {/* Nav — matches onboarding */}
+      {/* Nav */}
       <nav className="border-b border-border bg-nav-bg">
         <div className="flex items-center justify-between h-14 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto w-full">
           <MaturaLogo className="h-7" />
-          <UserButton />
+          <div className="flex items-center gap-3">
+            <LanguageSwitcher />
+            <UserButton />
+          </div>
         </div>
       </nav>
 
-      {/* Main content area — same card wrapper as onboarding */}
+      {/* Main content */}
       <main className="flex flex-1 px-4 py-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-6xl mx-auto rounded-2xl bg-card-bg min-h-[calc(100vh-100px)] px-8 sm:px-16 lg:px-24 py-12">
-          {/* Welcome heading */}
           <h1 className="text-4xl font-bold text-foreground mb-2">
-            Welcome to matura
+            {t("home.welcome")}
           </h1>
           <p className="text-foreground-secondary text-lg leading-relaxed mb-10">
-            Transform any software idea into a complete, implementation-ready plan.
+            {t("home.subtitle")}
           </p>
 
           {/* Stats banner */}
           <div className="rounded-xl border border-border bg-background px-6 py-5 flex items-center justify-between mb-10">
             <div>
-              <p className="text-foreground-muted text-sm">Total Projects</p>
+              <p className="text-foreground-muted text-sm">{t("home.totalProjects")}</p>
               <p className="text-3xl font-bold text-foreground">
                 {projects?.length ?? "\u2014"}
               </p>
@@ -51,7 +59,7 @@ export default function HomePage() {
               onClick={() => router.push("/onboarding")}
               className="rounded-full bg-primary px-8 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
             >
-              New Flow
+              {t("home.newFlow")}
             </button>
           </div>
 
@@ -60,44 +68,44 @@ export default function HomePage() {
             <div className="rounded-xl border border-border bg-background px-5 py-3.5 flex items-center gap-3">
               <span className="text-accent text-lg">&#x2728;</span>
               <p className="text-sm text-foreground-secondary">
-                Each flow generates vision, requirements, architecture, backlog, tests, cost estimates, and competitive analysis.
+                {t("home.tipGenerate")}
               </p>
             </div>
             <div className="rounded-xl border border-border bg-background px-5 py-3.5 flex items-center gap-3">
               <span className="text-accent text-lg">&#x1F501;</span>
               <p className="text-sm text-foreground-secondary">
-                Refine any artifact in the workspace and all related specs update automatically via the retro-feedback loop.
+                {t("home.tipRefine")}
               </p>
             </div>
           </div>
 
           {/* Projects table */}
           <div className="flex items-center justify-between mb-5">
-            <h2 className="text-2xl font-bold text-foreground">Your Flows</h2>
+            <h2 className="text-2xl font-bold text-foreground">{t("home.yourFlows")}</h2>
             <button
               onClick={() => router.push("/onboarding")}
               className="rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
             >
-              Create New Flow
+              {t("home.createNewFlow")}
             </button>
           </div>
 
           {projects === undefined && (
             <div className="rounded-xl border border-border bg-background p-12 text-center">
-              <p className="text-foreground-muted text-sm">Loading projects...</p>
+              <p className="text-foreground-muted text-sm">{t("home.loading")}</p>
             </div>
           )}
 
           {projects && projects.length === 0 && (
             <div className="rounded-xl border border-border bg-background p-12 text-center">
               <p className="text-foreground-muted text-sm mb-4">
-                No flows yet. Start your first one to see it here.
+                {t("home.noFlows")}
               </p>
               <button
                 onClick={() => router.push("/onboarding")}
                 className="rounded-full bg-primary px-8 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
               >
-                Create Your First Flow
+                {t("home.createFirstFlow")}
               </button>
             </div>
           )}
@@ -106,10 +114,10 @@ export default function HomePage() {
             <div className="rounded-xl border border-border bg-background overflow-hidden">
               {/* Table header */}
               <div className="grid grid-cols-12 gap-4 px-6 py-3 border-b border-border text-xs font-medium text-foreground-muted uppercase tracking-wider">
-                <div className="col-span-4">Project</div>
-                <div className="col-span-2">Mode</div>
-                <div className="col-span-2">Created</div>
-                <div className="col-span-4 text-right">Actions</div>
+                <div className="col-span-4">{t("home.project")}</div>
+                <div className="col-span-2">{t("home.mode")}</div>
+                <div className="col-span-2">{t("home.created")}</div>
+                <div className="col-span-4 text-right">{t("home.actions")}</div>
               </div>
 
               {/* Table rows */}
@@ -118,7 +126,6 @@ export default function HomePage() {
                   key={project._id}
                   className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-border-light last:border-b-0 items-center hover:bg-card-bg transition-colors"
                 >
-                  {/* Name + description */}
                   <div className="col-span-4 min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">
                       {project.name}
@@ -130,7 +137,6 @@ export default function HomePage() {
                     )}
                   </div>
 
-                  {/* Mode badge */}
                   <div className="col-span-2">
                     <span
                       className={`inline-flex text-xs px-3 py-1 rounded-full font-medium ${
@@ -139,18 +145,16 @@ export default function HomePage() {
                           : "bg-primary/10 text-primary"
                       }`}
                     >
-                      {project.mode === "internal" ? "Internal" : "External"}
+                      {project.mode === "internal" ? t("home.internal") : t("home.external")}
                     </span>
                   </div>
 
-                  {/* Date */}
                   <div className="col-span-2">
                     <p className="text-sm text-foreground-secondary">
                       {formatDate(project.createdAt)}
                     </p>
                   </div>
 
-                  {/* Actions */}
                   <div className="col-span-4 flex items-center justify-end gap-2">
                     <button
                       onClick={() =>
@@ -158,7 +162,7 @@ export default function HomePage() {
                       }
                       className="rounded-full border border-border px-4 py-1.5 text-xs font-medium text-foreground-secondary hover:text-foreground hover:border-foreground-muted transition-colors"
                     >
-                      Workspace
+                      {t("home.workspace")}
                     </button>
                   </div>
                 </div>

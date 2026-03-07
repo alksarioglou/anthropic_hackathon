@@ -8,6 +8,8 @@ import type { Id } from "@/convex/_generated/dataModel";
 import { UserButton } from "@clerk/nextjs";
 import ReactMarkdown from "react-markdown";
 import { MaturaLogo } from "@/components/MaturaLogo";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useTranslation } from "@/lib/i18n";
 import type { Project, Artifacts, ArtifactType } from "@/types";
 import { ARTIFACT_LABELS, BUSINESS_ARTIFACTS, TECH_ARTIFACTS } from "@/types";
 import { ArchGraph } from "@/components/ArchGraph";
@@ -684,6 +686,7 @@ function SidebarViewSwitch({
 // ─── main page ───────────────────────────────────────────────────────────────
 
 function WorkspaceContent() {
+  const { t } = useTranslation();
   const router = useRouter();
   const searchParams = useSearchParams();
   const projectId = searchParams.get("projectId") as Id<"projects"> | null;
@@ -1020,8 +1023,8 @@ function WorkspaceContent() {
                 {project?.name ?? "Loading\u2026"}
               </p>
               <p className="text-xs text-foreground-muted leading-tight">
-                {project?.mode === "external" ? "External" : "Internal"} mode
-                {isGenerating && <span className="ml-2 text-primary">{"\u00B7"} Generating\u2026</span>}
+                {project?.mode === "external" ? t("workspace.externalMode") : t("workspace.internalMode")}
+                {isGenerating && <span className="ml-2 text-primary">{"\u00B7"} {t("workspace.generating")}\u2026</span>}
               </p>
             </div>
           </div>
@@ -1038,7 +1041,7 @@ function WorkspaceContent() {
                       : "text-foreground-secondary hover:text-foreground"
                   }`}
                 >
-                  {v === "business" ? "Business" : v === "technical" ? "Technical" : "Architecture"}
+                  {v === "business" ? t("workspace.business") : v === "technical" ? t("workspace.technical") : t("workspace.architecture")}
                 </button>
               ))}
             </div>
@@ -1046,8 +1049,9 @@ function WorkspaceContent() {
               onClick={() => router.push("/home")}
               className="rounded-full border border-border px-4 py-1.5 text-xs font-medium text-foreground-secondary hover:text-foreground hover:border-foreground-muted transition-colors"
             >
-              Home
+              {t("workspace.home")}
             </button>
+            <LanguageSwitcher />
             <UserButton />
           </div>
         </div>
@@ -1057,7 +1061,7 @@ function WorkspaceContent() {
       {refinementCount > 0 && (
         <div className="px-6 py-2 bg-success/5 border-b border-success/20 text-xs text-success flex items-center gap-2 shrink-0">
           <span className="w-1.5 h-1.5 rounded-full bg-success" />
-          {refinementCount} refinement{refinementCount !== 1 ? "s" : ""} applied — artifacts kept in sync
+          {refinementCount} {t("workspace.refinementsApplied")}
         </div>
       )}
 
@@ -1069,7 +1073,7 @@ function WorkspaceContent() {
             {/* Project header card */}
             <div className="m-3 rounded-xl bg-primary p-4">
               <p className="text-[10px] font-semibold uppercase tracking-widest text-primary-foreground/70 mb-1">
-                Project Workspace
+                {t("workspace.projectWorkspace")}
               </p>
               <p className="text-sm font-bold text-primary-foreground leading-snug">
                 {project.name}
@@ -1079,7 +1083,7 @@ function WorkspaceContent() {
                   ? "bg-primary-foreground/20 text-primary-foreground"
                   : "bg-primary-foreground/20 text-primary-foreground"
               }`}>
-                {project.mode === "internal" ? "Internal mode" : "External mode"}
+                {project.mode === "internal" ? t("workspace.internalMode") : t("workspace.externalMode")}
               </span>
             </div>
 
@@ -1095,16 +1099,16 @@ function WorkspaceContent() {
         <main className="flex-1 overflow-y-auto p-6">
           {error && (
             <div className="flex flex-col items-center justify-center h-64 gap-3 text-center">
-              <p className="text-sm text-error">Generation failed</p>
+              <p className="text-sm text-error">{t("workspace.generationFailed")}</p>
               <p className="text-xs text-foreground-muted">
                 {error.includes("rate_limit")
-                  ? "API rate limit reached — please wait a moment and try again."
+                  ? t("workspace.rateLimitError")
                   : error.includes("API key") || error.includes("auth")
-                    ? "Invalid API key. Check ANTHROPIC_API_KEY in .env.local."
-                    : "Something went wrong. Please try again."}
+                    ? t("workspace.authError")
+                    : t("workspace.genericError")}
               </p>
               <button onClick={() => router.push("/home")} className="text-xs text-accent underline">
-                Back to home
+                {t("workspace.backToHome")}
               </button>
             </div>
           )}
