@@ -2,13 +2,13 @@
 
 import { ArchitectureGraph, NodeType } from "@/types/architecture";
 
-const NODE_TYPE_META: Record<NodeType, { label: string; dot: string }> = {
-  service:  { label: "Service",  dot: "bg-blue-400" },
-  database: { label: "Database", dot: "bg-purple-400" },
-  queue:    { label: "Queue",    dot: "bg-amber-400" },
-  gateway:  { label: "Gateway",  dot: "bg-green-400" },
-  external: { label: "External", dot: "bg-gray-400" },
-  group:    { label: "Group",    dot: "bg-gray-300" },
+const NODE_TYPE_META: Record<NodeType, { label: string; dot: string; bg: string }> = {
+  gateway:  { label: "Gateway",  dot: "bg-green-400",  bg: "bg-green-50" },
+  service:  { label: "Service",  dot: "bg-blue-400",   bg: "bg-blue-50" },
+  database: { label: "Database", dot: "bg-purple-400", bg: "bg-purple-50" },
+  queue:    { label: "Queue",    dot: "bg-amber-400",  bg: "bg-amber-50" },
+  external: { label: "External", dot: "bg-gray-400",   bg: "bg-gray-50" },
+  group:    { label: "Group",    dot: "bg-gray-300",   bg: "bg-gray-50" },
 };
 
 interface Props {
@@ -16,51 +16,52 @@ interface Props {
 }
 
 export function TechStackLegend({ graph }: Props) {
-  // Collect which node types are actually used
-  const usedTypes = [...new Set(graph.nodes.map((n) => n.type))] as NodeType[];
-
-  // Build tech stack: technology → [component labels]
-  const techMap = new Map<string, string[]>();
+  // Group nodes by type, only types that are actually used
+  const byType = new Map<NodeType, { label: string; technology?: string }[]>();
   for (const node of graph.nodes) {
-    if (!node.technology) continue;
-    const existing = techMap.get(node.technology) ?? [];
-    existing.push(node.label);
-    techMap.set(node.technology, existing);
+    const list = byType.get(node.type) ?? [];
+    list.push({ label: node.label, technology: node.technology });
+    byType.set(node.type, list);
   }
 
-  return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-4">
-      {/* Node type legend */}
-      <div>
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-2">
-          Legend
-        </p>
-        <div className="flex flex-wrap gap-x-4 gap-y-1.5">
-          {usedTypes.map((type) => (
-            <div key={type} className="flex items-center gap-1.5">
-              <span className={`w-2 h-2 rounded-full shrink-0 ${NODE_TYPE_META[type].dot}`} />
-              <span className="text-xs text-slate-600">{NODE_TYPE_META[type].label}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+  // Order: gateway, service, database, queue, external, group
+  const typeOrder: NodeType[] = ["gateway", "service", "database", "queue", "external", "group"];
+  const sortedTypes = typeOrder.filter((t) => byType.has(t));
 
-      {/* Tech stack list */}
-      {techMap.size > 0 && (
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-2">
-            Tech Stack
-          </p>
-          <div className="space-y-1">
-            {[...techMap.entries()].map(([tech, components]) => (
-              <div key={tech} className="flex items-baseline gap-2 text-xs">
-                <span className="font-medium text-slate-700 shrink-0">{tech}</span>
-                <span className="text-slate-400 truncate">{components.join(", ")}</span>
+  return (
+    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+        Components
+      </p>
+      <div className="space-y-2.5">
+        {sortedTypes.map((type) => {
+          const meta = NODE_TYPE_META[type];
+          const nodes = byType.get(type)!;
+          return (
+            <div key={type}>
+              <div className="flex items-center gap-1.5 mb-1">
+                <span className={`w-2 h-2 rounded-full shrink-0 ${meta.dot}`} />
+                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                  {meta.label}s
+                </span>
               </div>
-            ))}
-          </div>
-        </div>
-      )}
+              <div className="flex flex-wrap gap-1.5 ml-3.5">
+                {nodes.map((n, i) => (
+                  <span
+                    key={i}
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs ${meta.bg} text-slate-700`}
+                  >
+                    <span className="font-medium">{n.label}</span>
+                    {n.technology && (
+                      <span className="text-slate-400 text-[10px]">({n.technology})</span>
+                    )}
+                  </span>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
