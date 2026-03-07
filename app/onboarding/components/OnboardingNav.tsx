@@ -1,5 +1,6 @@
 "use client";
 
+import { UserButton } from "@clerk/nextjs";
 import { useTranslation } from "@/lib/i18n";
 import { MaturaLogo } from "@/components/MaturaLogo";
 import type { StepId } from "../page";
@@ -47,7 +48,7 @@ export function OnboardingNav({
           <MaturaLogo className="h-7" />
         </div>
 
-        <div className="flex flex-1 items-center">
+        <div className="flex flex-1 items-center min-w-0">
           {steps.map((stepId, index) => {
             const isActive = stepId === currentStep;
             const isCompleted = completedSteps.has(stepId);
@@ -79,6 +80,10 @@ export function OnboardingNav({
               </button>
             );
           })}
+        </div>
+
+        <div className="shrink-0 ml-4">
+          <UserButton />
         </div>
       </div>
     </nav>

@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useQuery, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
+import { UserButton } from "@clerk/nextjs";
 import { useTranslation } from "@/lib/i18n";
 import { MaturaLogo } from "@/components/MaturaLogo";
 import { sampleData } from "@/lib/dashboard-data";
@@ -62,6 +63,7 @@ function DashboardContent() {
           <span className="text-sm text-foreground-secondary">
             {t("dashboard.title")}
           </span>
+          <UserButton />
         </div>
       </nav>
 

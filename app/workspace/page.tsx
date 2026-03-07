@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { UserButton } from "@clerk/nextjs";
 import ReactMarkdown from "react-markdown";
 import type { Project, Artifacts, ArtifactType } from "@/types";
 import { ARTIFACT_LABELS, BUSINESS_ARTIFACTS, TECH_ARTIFACTS } from "@/types";
@@ -934,6 +935,7 @@ export default function WorkspacePage() {
             </p>
           </div>
         </div>
+        <UserButton />
       </header>
 
       {/* Refinement bar */}
