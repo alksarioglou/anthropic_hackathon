@@ -23,7 +23,7 @@ export function UsersRolesStep({
   const { t } = useTranslation();
 
   return (
-    <div className="max-w-2xl w-full px-8 py-12">
+    <div className="max-w-3xl w-full py-12">
       <div className="space-y-6">
         <div>
           <h2 className="text-3xl font-bold text-foreground mb-3">
@@ -55,7 +55,7 @@ export function UsersRolesStep({
         <div className="flex justify-center pt-4">
           <button
             onClick={onContinue}
-            className="rounded-full bg-primary px-12 py-3 text-base font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
+            className="rounded-full bg-primary px-16 py-3.5 text-base font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
           >
             {t("onboarding.questions.continue")}
           </button>

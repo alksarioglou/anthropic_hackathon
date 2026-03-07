@@ -85,10 +85,10 @@ export function StreamingField({ label, value, streamingText, onChange, placehol
     ? "border-amber-400/50"
     : showRefine
       ? "border-accent/50"
-      : "border-input-border";
+      : "border-border";
 
   return (
-    <div className={`group rounded-lg border bg-input-bg transition-colors ${borderColor}`}>
+    <div className={`group rounded-xl border bg-white transition-colors ${borderColor}`}>
 
       {/* Header row — matches workspace card header */}
       <div className="px-3 py-2 flex items-center justify-between gap-2 border-b border-input-border">

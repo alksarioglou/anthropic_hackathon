@@ -29,12 +29,25 @@ export function OnboardingNav({
 }: OnboardingNavProps) {
   const { t } = useTranslation();
 
-  return (
-    <nav className="flex items-center justify-between border-b border-border bg-nav-bg px-4 sm:px-6 lg:px-8 h-16">
-      <div className="flex items-center gap-6 overflow-x-auto">
-        <MaturaLogo className="h-7" />
+  const currentIndex = steps.indexOf(currentStep);
+  const progressFraction = (currentIndex + 1) / steps.length;
 
-        <div className="flex items-center gap-1">
+  return (
+    <nav className="relative border-b border-border bg-nav-bg">
+      {/* Progress bar at the very top */}
+      <div className="absolute top-0 left-0 right-0 h-[3px] bg-transparent">
+        <div
+          className="h-full bg-primary transition-all duration-300"
+          style={{ width: `${progressFraction * 100}%` }}
+        />
+      </div>
+
+      <div className="flex items-center h-14 px-4 sm:px-6">
+        <div className="shrink-0 mr-4">
+          <MaturaLogo className="h-7" />
+        </div>
+
+        <div className="flex flex-1 items-center">
           {steps.map((stepId, index) => {
             const isActive = stepId === currentStep;
             const isCompleted = completedSteps.has(stepId);
@@ -46,37 +59,28 @@ export function OnboardingNav({
                 key={stepId}
                 onClick={() => onStepClick(stepId)}
                 className={`
-                  relative flex items-center gap-1.5 px-3 py-2 text-sm whitespace-nowrap rounded transition-colors
+                  flex-1 flex items-center justify-center gap-1.5 py-2 text-[13px] whitespace-nowrap transition-colors
+                  ${isFirst ? "justify-start" : ""}
+                  ${isLast ? "justify-end" : ""}
                   ${
                     isActive
-                      ? "text-primary font-medium"
+                      ? "text-foreground font-semibold"
                       : isCompleted
-                        ? "text-success font-medium"
+                        ? "text-success"
                         : "text-foreground-muted"
                   }
                   hover:text-foreground
                 `}
               >
-                {(isFirst || isLast) && (
-                  <span className="text-xs">
-                    {isCompleted ? "\u2713" : "\u2691"}
-                  </span>
-                )}
-                {!isFirst && !isLast && (
-                  <span className="text-xs">
-                    {isCompleted ? "\u2713" : "\u203A"}
-                  </span>
-                )}
-                {t(stepLabelKeys[stepId] as Parameters<typeof t>[0])}
-                {isActive && (
-                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
-                )}
+                <span className={`text-xs ${isCompleted ? "text-success" : ""}`}>
+                  {isCompleted ? "\u2713" : isFirst || isLast ? "\u2691" : "\u203A"}
+                </span>
+                <span>{t(stepLabelKeys[stepId] as Parameters<typeof t>[0])}</span>
               </button>
             );
           })}
         </div>
       </div>
-
     </nav>
   );
 }

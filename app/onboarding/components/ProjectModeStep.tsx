@@ -17,7 +17,7 @@ export function ProjectModeStep({
   const { t } = useTranslation();
 
   return (
-    <div className="max-w-2xl w-full px-8 py-12">
+    <div className="max-w-3xl w-full py-12">
       <div>
           <h2 className="text-3xl font-bold text-foreground mb-3">
             {t("onboarding.projectMode.title")}
@@ -34,8 +34,8 @@ export function ProjectModeStep({
                 flex-1 rounded-xl border-2 p-6 text-left transition-all hover:-translate-y-0.5 hover:shadow-lg
                 ${
                   projectMode === "internal"
-                    ? "border-primary bg-primary/5 shadow-md"
-                    : "border-border hover:border-foreground-muted"
+                    ? "border-primary bg-white shadow-md"
+                    : "border-border bg-white hover:border-foreground-muted"
                 }
               `}
             >
@@ -61,8 +61,8 @@ export function ProjectModeStep({
                 flex-1 rounded-xl border-2 p-6 text-left transition-all hover:-translate-y-0.5 hover:shadow-lg
                 ${
                   projectMode === "external"
-                    ? "border-primary bg-primary/5 shadow-md"
-                    : "border-border hover:border-foreground-muted"
+                    ? "border-primary bg-white shadow-md"
+                    : "border-border bg-white hover:border-foreground-muted"
                 }
               `}
             >
@@ -85,7 +85,7 @@ export function ProjectModeStep({
           <div className="mt-8 flex justify-center">
             <button
               onClick={onContinue}
-              className="rounded-full bg-primary px-12 py-3 text-base font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
+              className="rounded-full bg-primary px-16 py-3.5 text-base font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
             >
               {t("onboarding.questions.continue")}
             </button>

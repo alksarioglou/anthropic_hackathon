@@ -31,7 +31,7 @@ export function ToolIdeaStep({ value, onChange, onContinue }: ToolIdeaStepProps)
   const { t } = useTranslation();
 
   return (
-    <div className="max-w-2xl w-full px-8 py-12">
+    <div className="max-w-3xl w-full py-12">
       <div>
           <h2 className="text-3xl font-bold text-foreground mb-3">
             {t("onboarding.toolIdea.title")}
@@ -57,14 +57,14 @@ export function ToolIdeaStep({ value, onChange, onContinue }: ToolIdeaStepProps)
             onChange={(e) => onChange(e.target.value)}
             placeholder="Ask anything…"
             rows={6}
-            className="w-full rounded-lg border border-input-border bg-input-bg p-4 text-foreground placeholder:text-foreground-muted outline-none transition-colors focus:border-input-border-focus resize-none"
+            className="w-full rounded-xl border border-border bg-white p-4 text-foreground placeholder:text-foreground-muted outline-none transition-colors focus:border-input-border-focus resize-none"
           />
 
           <div className="mt-8 flex justify-center">
             <button
               onClick={onContinue}
               disabled={!value.trim()}
-              className="rounded-full bg-primary px-12 py-3 text-base font-medium text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-full bg-primary px-16 py-3.5 text-base font-medium text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {t("onboarding.questions.continue")}
             </button>

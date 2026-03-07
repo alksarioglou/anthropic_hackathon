@@ -11,7 +11,7 @@ export function WelcomeStep({ userName, onStart }: WelcomeStepProps) {
   const { t } = useTranslation();
 
   return (
-    <div className="max-w-2xl px-8 py-12">
+    <div className="max-w-3xl w-full py-12">
       <h1 className="text-4xl font-bold text-foreground mb-6">
         {t("onboarding.welcome.greeting", { name: userName })}
       </h1>
@@ -26,7 +26,7 @@ export function WelcomeStep({ userName, onStart }: WelcomeStepProps) {
       <div className="mt-8 flex justify-center">
         <button
           onClick={onStart}
-          className="rounded-full bg-primary px-12 py-3 text-base font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
+          className="rounded-full bg-primary px-16 py-3.5 text-base font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
         >
           {t("onboarding.welcome.cta")}
         </button>
