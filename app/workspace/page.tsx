@@ -5,6 +5,10 @@ import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import type { Project, Artifacts, ArtifactType } from "@/types";
 import { ARTIFACT_LABELS, BUSINESS_ARTIFACTS, TECH_ARTIFACTS } from "@/types";
+import { ArchGraph } from "@/components/ArchGraph";
+import { ProsePanel } from "@/components/ProsePanel";
+import { TechStackLegend } from "@/components/TechStackLegend";
+import type { ArchitectureGraph } from "@/types/architecture";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -461,13 +465,14 @@ function ViewToggle({
   active,
   onChange,
 }: {
-  active: "business" | "technical";
-  onChange: (v: "business" | "technical") => void;
+  active: "business" | "technical" | "architecture";
+  onChange: (v: "business" | "technical" | "architecture") => void;
 }) {
+  const labels: Record<string, string> = { business: "Business", technical: "Technical", architecture: "Architecture" };
   return (
     <div className="flex items-center justify-center mb-6">
       <div className="relative flex items-center bg-zinc-900 border border-zinc-800 rounded-xl p-1 gap-1">
-        {(["business", "technical"] as const).map((v) => (
+        {(["business", "technical", "architecture"] as const).map((v) => (
           <button
             key={v}
             onClick={() => onChange(v)}
@@ -477,7 +482,7 @@ function ViewToggle({
                 : "text-zinc-500 hover:text-zinc-300"
             }`}
           >
-            {v === "business" ? "Business" : "Technical"}
+            {labels[v]}
           </button>
         ))}
       </div>
@@ -494,9 +499,17 @@ export default function WorkspacePage() {
   const [streamingContent, setStreamingContent] = useState<Partial<Record<ArtifactType, string>>>({});
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeView, setActiveView] = useState<"business" | "technical">("technical");
+  const [activeView, setActiveView] = useState<"business" | "technical" | "architecture">("technical");
   const [refinementCount, setRefinementCount] = useState(0);
   const [focusedType, setFocusedType] = useState<ArtifactType | null>(null);
+
+  // Architecture view state
+  type ArchPhase = "idle" | "loading" | "graph-ready" | "streaming" | "done" | "error";
+  const [archPhase, setArchPhase] = useState<ArchPhase>("idle");
+  const [archGraph, setArchGraph] = useState<ArchitectureGraph | null>(null);
+  const [archProse, setArchProse] = useState("");
+  const [archStatusMessages, setArchStatusMessages] = useState<string[]>([]);
+  const archGenerated = useRef(false);
 
   // Refs for accurate accumulation without stale closures
   const streamAccumRef = useRef<Partial<Record<ArtifactType, string>>>({});
@@ -665,6 +678,63 @@ export default function WorkspacePage() {
     });
   }, []);
 
+  function parseSSEBuffer(buffer: string) {
+    const parsed: Array<{ type: string; data: Record<string, unknown> }> = [];
+    const events = buffer.split("\n\n");
+    const remainder = events.pop() ?? "";
+    for (const raw of events) {
+      if (!raw.trim()) continue;
+      const lines = raw.split("\n");
+      let type = "", dataStr = "";
+      for (const line of lines) {
+        if (line.startsWith("event: ")) type = line.slice(7).trim();
+        if (line.startsWith("data: ")) dataStr = line.slice(6).trim();
+      }
+      if (type && dataStr) { try { parsed.push({ type, data: JSON.parse(dataStr) }); } catch { /* skip */ } }
+    }
+    return { parsed, remainder };
+  }
+
+  const startArchGeneration = useCallback(async (specs: string) => {
+    setArchPhase("loading");
+    setArchStatusMessages([]);
+    setArchGraph(null);
+    setArchProse("");
+    try {
+      const res = await fetch("/api/generate-architecture", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ businessSpecs: specs }),
+      });
+      if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const { parsed, remainder } = parseSSEBuffer(buffer);
+        buffer = remainder;
+        for (const event of parsed) {
+          if (event.type === "status") setArchStatusMessages((prev) => [...prev, event.data.message as string]);
+          if (event.type === "architecture") { setArchGraph(event.data as unknown as ArchitectureGraph); setArchPhase("graph-ready"); }
+          if (event.type === "prose") { setArchPhase("streaming"); setArchProse((prev) => prev + (event.data.chunk as string)); }
+          if (event.type === "done") setArchPhase("done");
+          if (event.type === "error") { setArchPhase("error"); }
+        }
+      }
+    } catch { setArchPhase("error"); }
+  }, []);
+
+  function handleViewChange(v: "business" | "technical" | "architecture") {
+    setActiveView(v);
+    if (v === "architecture" && !archGenerated.current && projectRef.current) {
+      archGenerated.current = true;
+      startArchGeneration(projectRef.current.idea);
+    }
+  }
+
   const artifactTypes = activeView === "business" ? BUSINESS_ARTIFACTS : TECH_ARTIFACTS;
 
   return (
@@ -721,22 +791,41 @@ export default function WorkspacePage() {
             </div>
 
             {/* View toggle — in body */}
-            <ViewToggle active={activeView} onChange={setActiveView} />
+            <ViewToggle active={activeView} onChange={handleViewChange} />
 
-            {/* Artifacts grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {artifactTypes.map((type) => (
-                <ArtifactCard
-                  key={type}
-                  type={type}
-                  content={artifacts[type]}
-                  streamingText={streamingContent[type]}
-                  onStartRefinement={handleStartRefinement}
-                  onDirectSave={handleDirectSave}
-                  onFocus={() => setFocusedType(type)}
-                />
-              ))}
-            </div>
+            {/* Architecture view */}
+            {activeView === "architecture" && (
+              <div className="flex gap-6 h-[70vh] rounded-xl overflow-hidden border border-zinc-800">
+                <div className="flex-[3] min-w-0">
+                  <ArchGraph graph={archGraph} />
+                </div>
+                <div className="flex-[2] overflow-y-auto p-5 bg-zinc-900 space-y-5">
+                  {archGraph && <TechStackLegend graph={archGraph} />}
+                  <ProsePanel
+                    statusMessages={archStatusMessages}
+                    prose={archProse}
+                    isStreaming={archPhase === "streaming"}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Artifacts grid (business / technical) */}
+            {activeView !== "architecture" && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {artifactTypes.map((type) => (
+                  <ArtifactCard
+                    key={type}
+                    type={type}
+                    content={artifacts[type]}
+                    streamingText={streamingContent[type]}
+                    onStartRefinement={handleStartRefinement}
+                    onDirectSave={handleDirectSave}
+                    onFocus={() => setFocusedType(type)}
+                  />
+                ))}
+              </div>
+            )}
 
             {/* Focus modal */}
             {focusedType && (
