@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Show, SignUp, useUser } from "@clerk/nextjs";
 import { MaturaLogo } from "@/components/MaturaLogo";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useTranslation } from "@/lib/i18n";
 
 export default function Home() {
@@ -34,7 +35,10 @@ export default function Home() {
         <header className="border-b border-border bg-nav-bg">
           <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
             <MaturaLogo className="h-7" />
-            <LanguageSwitcher />
+            <div className="flex items-center gap-2">
+              <LanguageSwitcher />
+              <ThemeToggle />
+            </div>
           </div>
         </header>
 

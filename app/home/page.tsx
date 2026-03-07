@@ -6,6 +6,7 @@ import { api } from "@/convex/_generated/api";
 import { UserButton } from "@clerk/nextjs";
 import { MaturaLogo } from "@/components/MaturaLogo";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useTranslation, useLocale } from "@/lib/i18n";
 
 const DATE_LOCALES: Record<string, string> = { en: "en-GB", de: "de-DE", fr: "fr-FR" };
@@ -32,6 +33,7 @@ export default function HomePage() {
           <MaturaLogo className="h-7" />
           <div className="flex items-center gap-3">
             <LanguageSwitcher />
+            <ThemeToggle />
             <UserButton />
           </div>
         </div>

@@ -4,6 +4,7 @@ import { UserButton } from "@clerk/nextjs";
 import { useTranslation } from "@/lib/i18n";
 import { MaturaLogo } from "@/components/MaturaLogo";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import type { StepId } from "../page";
 
 interface OnboardingNavProps {
@@ -85,6 +86,7 @@ export function OnboardingNav({
 
         <div className="shrink-0 ml-4 flex items-center gap-3">
           <LanguageSwitcher />
+          <ThemeToggle />
           <UserButton />
         </div>
       </div>

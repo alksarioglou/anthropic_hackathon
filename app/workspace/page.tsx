@@ -9,6 +9,7 @@ import { UserButton } from "@clerk/nextjs";
 import ReactMarkdown from "react-markdown";
 import { MaturaLogo } from "@/components/MaturaLogo";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useTranslation } from "@/lib/i18n";
 import type { Project, Artifacts, ArtifactType } from "@/types";
 import { ARTIFACT_LABELS, BUSINESS_ARTIFACTS, TECH_ARTIFACTS } from "@/types";
@@ -1052,6 +1053,7 @@ function WorkspaceContent() {
               {t("workspace.home")}
             </button>
             <LanguageSwitcher />
+            <ThemeToggle />
             <UserButton />
           </div>
         </div>
