@@ -1,5 +1,6 @@
 "use client";
 
+import ReactMarkdown from "react-markdown";
 import { StatusLog } from "./StatusLog";
 
 interface Props {
@@ -14,13 +15,15 @@ export function ProsePanel({ statusMessages, prose, isStreaming }: Props) {
       <StatusLog messages={statusMessages} />
 
       {prose && (
-        <div className="max-w-none">
-          <p className="text-foreground-secondary leading-relaxed whitespace-pre-wrap text-sm">
-            {prose}
-            {isStreaming && (
+        <div className="md-content text-sm text-foreground-secondary">
+          {isStreaming ? (
+            <pre className="whitespace-pre-wrap font-sans leading-relaxed">
+              {prose}
               <span className="inline-block w-0.5 h-4 bg-primary ml-0.5 animate-pulse align-text-bottom" />
-            )}
-          </p>
+            </pre>
+          ) : (
+            <ReactMarkdown>{prose}</ReactMarkdown>
+          )}
         </div>
       )}
 

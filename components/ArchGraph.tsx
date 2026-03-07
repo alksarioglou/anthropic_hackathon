@@ -6,7 +6,7 @@ import {
   Node,
   Edge,
   Background,
-  Controls,
+  Panel,
   BackgroundVariant,
   useReactFlow,
   ReactFlowProvider,
@@ -34,23 +34,25 @@ function applyDagreLayout(nodes: Node[], edges: Edge[]): Node[] {
   });
 }
 
-function CenterButton() {
+function FitButton() {
   const { fitView } = useReactFlow();
   const handleFit = useCallback(() => {
     fitView({ padding: 0.2, duration: 400 });
   }, [fitView]);
 
   return (
-    <button
-      onClick={handleFit}
-      title="Fit to screen"
-      className="absolute top-3 right-3 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/90 border border-border text-xs font-medium text-foreground-secondary hover:text-foreground shadow-sm backdrop-blur-sm transition-colors"
-    >
-      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-        <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
-      </svg>
-      Fit
-    </button>
+    <Panel position="top-right">
+      <button
+        onClick={handleFit}
+        title="Fit to screen"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-background border border-border text-xs font-medium text-foreground-secondary hover:text-foreground shadow-sm transition-colors"
+      >
+        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+        </svg>
+        Fit
+      </button>
+    </Panel>
   );
 }
 
@@ -111,9 +113,8 @@ function ArchGraphInner({ graph }: { graph: ArchitectureGraph | null }) {
         style={{ background: "#f5f5f5" }}
       >
         <Background variant={BackgroundVariant.Dots} gap={16} size={1} color="#d4d4d4" />
-        <Controls />
+        <FitButton />
       </ReactFlow>
-      <CenterButton />
     </div>
   );
 }

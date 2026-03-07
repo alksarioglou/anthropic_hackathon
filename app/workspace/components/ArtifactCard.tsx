@@ -232,8 +232,7 @@ export function ArtifactCard({
         <textarea
           value={editText}
           onChange={(e) => setEditText(e.target.value)}
-          className="w-full px-4 py-3 bg-background text-xs text-foreground font-mono leading-relaxed resize-none focus:outline-none rounded-b-xl"
-          rows={14}
+          className="w-full px-4 py-3 bg-background text-sm text-foreground leading-relaxed resize-y focus:outline-none rounded-b-xl min-h-[200px]"
           autoFocus
         />
       )}

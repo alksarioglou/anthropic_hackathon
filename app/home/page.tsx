@@ -9,15 +9,24 @@ import { UserButton } from "@clerk/nextjs";
 import { MaturaLogo } from "@/components/MaturaLogo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
-const EXAMPLES = [
+const DEMO_USE_CASES = [
   {
-    label: "IT Incident Portal",
-    text: "An internal portal where employees can report IT incidents, support teams triage and resolve them, and critical fixes become tracked change requests requiring manager approval before rollout. Track SLAs, send automated reminders, and provide a dashboard with incident trends.",
-  },
-  {
+    complexity: "Simple",
     label: "Team Task Tracker",
-    text: "A lightweight web app where teams create tasks, assign owners, set due dates, and track status across projects. Managers need a Kanban board and burndown charts. Tasks support sub-tasks, file attachments, and comments with email notifications.",
+    tagline: "Small internal team productivity",
+    idea: "We need a small internal web app where a team can create tasks, assign owners, set due dates, track status, and get reminders. Managers need a Kanban board view and burndown charts. Tasks should support sub-tasks, file attachments, and comment threads. Email notifications for assignments and approaching deadlines.",
+    color: "emerald" as const,
   },
+  {
+    complexity: "Medium",
+    label: "IT Incident Portal",
+    tagline: "Incident & change management",
+    idea: "We need an internal portal where employees can report IT incidents, support teams can triage and resolve them, and important fixes can become tracked change requests with approvals and implementation planning. The system should support multiple user roles, SLA tracking, severity classification, approval workflows, audit history, and email notifications.",
+    color: "violet" as const,
+  },
+];
+
+const EXAMPLES = [
   {
     label: "Employee Onboarding",
     text: "A self-service onboarding platform for new hires. HR creates checklists per department. New employees follow a guided checklist with due dates. Managers see completion status with automatic reminders and a final HR sign-off.",
@@ -139,24 +148,26 @@ export default function HomePage() {
         </div>
       </nav>
 
-      <main className="flex flex-1 px-6 lg:px-16 py-12">
-        <div className="w-full">
+      <main className="flex flex-1 justify-center px-6 py-12">
+        <div className="w-full max-w-3xl">
 
           {/* Idea input */}
           <div className="mb-12">
             <h1 className="text-4xl font-bold text-foreground mb-2">
               {firstName ? `What do you want to build, ${firstName}?` : "What do you want to build?"}
             </h1>
-            <p className="text-foreground-secondary text-lg leading-relaxed mb-6">
+            <p className="text-foreground-secondary text-base leading-relaxed mb-6">
               Describe your software idea and we'll generate a complete implementation plan in minutes.
             </p>
+
+            {/* Input area */}
             <div className="rounded-xl border border-border bg-background p-4">
               <textarea
                 value={idea}
                 onChange={(e) => setIdea(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleStart(); }}
-                placeholder="e.g. An internal portal where employees can report IT incidents, support teams triage and resolve them, and fixes become tracked change requests with approval workflows…"
-                rows={4}
+                placeholder="Describe your software idea…"
+                rows={5}
                 className="w-full bg-transparent text-foreground placeholder:text-foreground-muted resize-none outline-none text-sm leading-relaxed"
               />
               <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
@@ -164,20 +175,40 @@ export default function HomePage() {
                 <button
                   onClick={handleStart}
                   disabled={!idea.trim()}
-                  className="rounded-full bg-primary px-8 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="rounded-full bg-primary px-6 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Start →
                 </button>
               </div>
             </div>
 
-            {/* Example buttons */}
-            <div className="flex flex-wrap gap-2 mt-3">
+            {/* Demo use cases + other examples — horizontal row */}
+            <div className="mt-3 flex flex-wrap items-start gap-2">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-foreground-muted self-center mr-1">Try:</span>
+              {DEMO_USE_CASES.map((uc) => (
+                <button
+                  key={uc.label}
+                  onClick={() => setIdea(uc.idea)}
+                  className={`flex items-center gap-2 rounded-full px-3.5 py-1.5 border text-xs font-medium transition-all duration-150 group ${
+                    idea === uc.idea
+                      ? uc.color === "emerald"
+                        ? "border-emerald-500/70 bg-emerald-500/15 text-emerald-700"
+                        : "border-violet-500/70 bg-violet-500/15 text-violet-700"
+                      : uc.color === "emerald"
+                        ? "border-emerald-500/40 bg-emerald-500/5 text-emerald-700 hover:border-emerald-500/70 hover:bg-emerald-500/12"
+                        : "border-violet-500/40 bg-violet-500/5 text-violet-700 hover:border-violet-500/70 hover:bg-violet-500/12"
+                  }`}
+                >
+                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${uc.color === "emerald" ? "bg-emerald-500" : "bg-violet-500"}`} />
+                  {uc.label}
+                  <span className={`text-[10px] font-normal opacity-70`}>{uc.complexity}</span>
+                </button>
+              ))}
               {EXAMPLES.map((ex) => (
                 <button
                   key={ex.label}
                   onClick={() => setIdea(ex.text)}
-                  className="text-xs px-3 py-1.5 rounded-full border border-border text-foreground-secondary hover:border-accent hover:text-accent transition-colors"
+                  className="rounded-full px-3 py-1.5 border border-border text-xs text-foreground-secondary hover:border-foreground-muted hover:text-foreground transition-colors"
                 >
                   {ex.label}
                 </button>
@@ -212,7 +243,7 @@ export default function HomePage() {
           <p className="mt-12 text-xs text-foreground-muted text-center">
             Powered by{" "}
             <span className="font-medium text-foreground-secondary">Claude</span>
-            {" "}· Built for the Swiss Life Hackathon
+            {" "}· Built at the Anthropic Hackathon for Swiss Life
           </p>
         </div>
       </main>

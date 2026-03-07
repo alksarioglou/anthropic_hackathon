@@ -8,7 +8,7 @@ import type { Id } from "@/convex/_generated/dataModel";
 import { UserButton } from "@clerk/nextjs";
 import { MaturaLogo } from "@/components/MaturaLogo";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import type { Artifacts, ArtifactType } from "@/types";
+import type { Artifacts, ArtifactType, Project } from "@/types";
 import { BUSINESS_ARTIFACTS, TECH_ARTIFACTS } from "@/types";
 import { ArchGraph } from "@/components/ArchGraph";
 import { ProsePanel } from "@/components/ProsePanel";
@@ -36,6 +36,7 @@ function WorkspaceContent() {
   const updateArtifactMut = useMutation(api.artifacts.updateArtifact);
   const saveArchMut = useMutation(api.artifacts.saveArch);
   const updateProjectMut = useMutation(api.projects.update);
+  const saveOnboardingMut = useMutation(api.onboarding.save);
 
   const [artifacts, setArtifacts] = useState<Artifacts>({});
   const [streamingContent, setStreamingContent] = useState<Partial<Record<ArtifactType, string>>>({});
@@ -55,6 +56,7 @@ function WorkspaceContent() {
   const [archProse, setArchProse] = useState("");
   const [archStatusMessages, setArchStatusMessages] = useState<string[]>([]);
   const archGenerated = useRef(false);
+  const activeViewRef = useRef<"business" | "technical" | "architecture">("business");
   const archGraphRef = useRef<ArchitectureGraph | null>(null);
   const archProseRef = useRef("");
   const archStatusRef = useRef<string[]>([]);
@@ -86,6 +88,7 @@ function WorkspaceContent() {
   const projectRef = useRef(project);
   useEffect(() => { projectRef.current = project; }, [project]);
   useEffect(() => { artifactsRef.current = artifacts; }, [artifacts]);
+  useEffect(() => { activeViewRef.current = activeView; }, [activeView]);
 
   // Redirect if no project ID in URL
   useEffect(() => {
@@ -129,6 +132,11 @@ function WorkspaceContent() {
     if (!hasGenerated.current) {
       hasGenerated.current = true;
       runGeneration(convexProject.idea, convexProject.mode);
+    }
+    // If user already navigated to architecture tab before data loaded, start arch generation now
+    if (activeViewRef.current === "architecture" && !archGenerated.current) {
+      archGenerated.current = true;
+      startArchGeneration(convexProject.idea);
     }
   }, [convexProject, convexArtifacts]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -179,18 +187,49 @@ function WorkspaceContent() {
     }
   }
 
+  function buildIdea(description: string, q: Project["questionnaire"]) {
+    const parts = [description];
+    if (q?.userRoles) parts.push(`Users & roles: ${q.userRoles}`);
+    if (q?.accessControl) parts.push(`Access control: ${q.accessControl}`);
+    if (q?.keyWorkflows) parts.push(`Key workflows: ${q.keyWorkflows}`);
+    if (q?.approvals) parts.push(`Approvals: ${q.approvals}`);
+    if (q?.notifications) parts.push(`Notifications: ${q.notifications}`);
+    return parts.join("\n\n");
+  }
+
   function handleUpdateIdea(newDescription: string) {
     const proj = projectRef.current;
     if (!proj || !projectId) return;
-    const q = proj.questionnaire;
-    const ideaParts = [newDescription];
-    if (q?.userRoles) ideaParts.push(`Users & roles: ${q.userRoles}`);
-    if (q?.accessControl) ideaParts.push(`Access control: ${q.accessControl}`);
-    if (q?.keyWorkflows) ideaParts.push(`Key workflows: ${q.keyWorkflows}`);
-    if (q?.approvals) ideaParts.push(`Approvals: ${q.approvals}`);
-    if (q?.notifications) ideaParts.push(`Notifications: ${q.notifications}`);
-    const newIdea = ideaParts.join("\n\n");
+    const newIdea = buildIdea(newDescription, proj.questionnaire);
     updateProjectMut({ id: projectId, description: newDescription, idea: newIdea });
+    setArtifacts({});
+    artifactsRef.current = {};
+    setStreamingContent({});
+    streamAccumRef.current = {};
+    runGeneration(newIdea, proj.mode);
+  }
+
+  function handleUpdateQuestionnaire(field: string, value: string) {
+    const proj = projectRef.current;
+    if (!proj || !projectId) return;
+    const updatedQ = { ...proj.questionnaire, [field]: value };
+    const newIdea = buildIdea(proj.description ?? proj.idea.split("\n\n")[0], updatedQ);
+    updateProjectMut({ id: projectId, idea: newIdea });
+    // Persist questionnaire field to onboarding record if available
+    if (convexOnboarding) {
+      saveOnboardingMut({
+        id: convexOnboarding._id,
+        toolDescription: convexOnboarding.toolDescription,
+        projectMode: convexOnboarding.projectMode,
+        userRoles: updatedQ.userRoles ?? "",
+        accessControl: updatedQ.accessControl ?? "",
+        keyWorkflows: updatedQ.keyWorkflows ?? "",
+        approvals: updatedQ.approvals ?? "",
+        notifications: updatedQ.notifications ?? "",
+        uploadedFiles: convexOnboarding.uploadedFiles ?? [],
+        status: convexOnboarding.status,
+      }).catch(() => {});
+    }
     setArtifacts({});
     artifactsRef.current = {};
     setStreamingContent({});
@@ -355,7 +394,8 @@ function WorkspaceContent() {
 
   function handleViewChange(v: "business" | "technical" | "architecture") {
     setActiveView(v);
-    if (v === "architecture" && !archGenerated.current && projectRef.current) {
+    // Only generate if DB load is complete (prevents racing with saved arch restore)
+    if (v === "architecture" && !archGenerated.current && hasLoadedFromDb.current && projectRef.current) {
       archGenerated.current = true;
       startArchGeneration(projectRef.current.idea);
     }
@@ -472,7 +512,7 @@ function WorkspaceContent() {
           <div className="flex-1 overflow-y-auto px-3 pb-3 flex flex-col gap-4">
             {project && (
               <>
-                <IdeaPanel project={project} onUpdateIdea={handleUpdateIdea} />
+                <IdeaPanel project={project} onUpdateIdea={handleUpdateIdea} onUpdateQuestionnaire={handleUpdateQuestionnaire} />
                 <SidebarViewSwitch active={activeView} onChange={handleViewChange} />
               </>
             )}
@@ -501,8 +541,8 @@ function WorkspaceContent() {
             <div key={activeView} className="animate-view-switch">
               {/* Architecture view */}
               {activeView === "architecture" && (
-                <div className="flex gap-6 h-[calc(100vh-8rem)] rounded-xl overflow-hidden border border-border">
-                  <div className="flex-[3] min-w-0">
+                <div className="flex h-[calc(100vh-8rem)] rounded-xl overflow-hidden border border-border">
+                  <div className="flex-[3] min-w-0 border-r border-border">
                     <ArchGraph graph={archGraph} />
                   </div>
                   <div className="flex-[2] overflow-y-auto p-5 bg-card-bg space-y-5">

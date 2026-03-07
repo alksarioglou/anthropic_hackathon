@@ -59,15 +59,14 @@ export function GlobalRefineBar({ isRefining, disabled, onSubmit }: GlobalRefine
   const isActive = focused || value.length > 0;
 
   return (
+    // Always centered — only width animates, no position jump
     <div
-      className={`fixed bottom-6 z-20 transition-all duration-200 ${
-        isActive
-          ? "left-[calc(20rem+2rem)] right-8 max-w-2xl"
-          : "left-1/2 -translate-x-1/4 w-[min(480px,calc(100vw-24rem))]"
+      className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-20 transition-[width] duration-300 ease-out ${
+        isActive ? "w-[min(680px,calc(100vw-2rem))]" : "w-[min(420px,calc(100vw-2rem))]"
       }`}
     >
       <div
-        className={`rounded-2xl border bg-background shadow-lg transition-colors ${
+        className={`rounded-2xl border bg-background shadow-lg transition-colors duration-200 ${
           isActive ? "border-primary/40 shadow-primary/10" : "border-border"
         }`}
       >
@@ -86,7 +85,7 @@ export function GlobalRefineBar({ isRefining, disabled, onSubmit }: GlobalRefine
           />
 
           {isActive && (
-            <div className="flex items-center justify-between mt-2 pt-2 border-t border-border">
+            <div className="flex items-center justify-between mt-2 pt-2 border-t border-border animate-fade-in">
               <button
                 onClick={handleImprove}
                 disabled={!value.trim() || isImproving || isRefining}
