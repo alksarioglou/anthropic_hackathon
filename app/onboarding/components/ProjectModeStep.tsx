@@ -17,16 +17,12 @@ export function ProjectModeStep({
   const { t } = useTranslation();
 
   return (
-    <div className="max-w-2xl w-full px-8">
-      <div className="flex items-start gap-6">
-        <span className="text-foreground-muted text-lg font-medium mt-0.5">
-          1.
-        </span>
-        <div className="flex-1">
-          <h2 className="text-2xl font-semibold text-foreground mb-2">
+    <div className="max-w-2xl w-full px-8 py-12">
+      <div>
+          <h2 className="text-3xl font-bold text-foreground mb-3">
             {t("onboarding.projectMode.title")}
           </h2>
-          <p className="text-foreground-secondary text-base mb-8">
+          <p className="text-foreground-secondary text-sm leading-relaxed mb-8">
             {t("onboarding.projectMode.description")}
           </p>
 
@@ -94,7 +90,6 @@ export function ProjectModeStep({
               {t("onboarding.questions.continue")}
             </button>
           </div>
-        </div>
       </div>
     </div>
   );

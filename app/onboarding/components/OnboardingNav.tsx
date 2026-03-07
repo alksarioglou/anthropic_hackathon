@@ -9,7 +9,6 @@ interface OnboardingNavProps {
   currentStep: StepId;
   completedSteps: Set<StepId>;
   onStepClick: (stepId: StepId) => void;
-  onSave: () => void;
 }
 
 const stepLabelKeys: Record<StepId, string> = {
@@ -27,7 +26,6 @@ export function OnboardingNav({
   currentStep,
   completedSteps,
   onStepClick,
-  onSave,
 }: OnboardingNavProps) {
   const { t } = useTranslation();
 
@@ -79,19 +77,6 @@ export function OnboardingNav({
         </div>
       </div>
 
-      <button
-        onClick={onSave}
-        className={`
-          ml-4 whitespace-nowrap rounded-full border px-5 py-2 text-sm font-medium transition-colors
-          ${
-            completedSteps.size > 0
-              ? "border-primary bg-primary text-primary-foreground hover:bg-primary-hover"
-              : "border-border text-foreground-secondary hover:bg-background-secondary"
-          }
-        `}
-      >
-        {t("onboarding.nav.saveProgress")}
-      </button>
     </nav>
   );
 }

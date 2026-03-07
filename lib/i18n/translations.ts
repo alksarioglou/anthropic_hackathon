@@ -9,7 +9,7 @@ const translations = {
       steps: {
         start: "Start",
         projectMode: "Project Type",
-        toolIdea: "Tool Idea",
+        toolIdea: "Idea",
         usersRoles: "Users & Roles",
         workflows: "Workflows",
         files: "Files",
@@ -20,7 +20,7 @@ const translations = {
         description:
           "We'll guide you through a few simple questions to understand what tool you need. Just describe your idea in plain language — our AI will handle the rest and create a complete plan for you: vision, requirements, cost estimate, and more.",
         saveNote:
-          "At any point in time, you can save your progress and come back later to update your submission.",
+          "Your progress is saved automatically as you move through each step.",
         cta: "Let's get started!",
       },
       projectMode: {
@@ -35,9 +35,9 @@ const translations = {
           "Runs competitive analysis against external sources. Can pull in public information to enrich your plan.",
       },
       toolIdea: {
-        title: "Describe your tool idea",
+        title: "Describe your idea",
         question:
-          "What tool do you need? Describe the problem it solves and what it should do. The more detail you provide, the better the result.",
+          "What do you need to build? Describe the problem it solves and what it should do. The more detail you provide, the better the result.",
         placeholder:
           "e.g. We need an internal portal where employees can report IT incidents, support teams can triage and resolve them, and important fixes can become tracked change requests with approvals...",
       },
@@ -182,7 +182,7 @@ const translations = {
       steps: {
         start: "Start",
         projectMode: "Projekttyp",
-        toolIdea: "Tool-Idee",
+        toolIdea: "Idee",
         usersRoles: "Benutzer & Rollen",
         workflows: "Workflows",
         files: "Dateien",
@@ -193,7 +193,7 @@ const translations = {
         description:
           "Wir fuehren Sie durch einige einfache Fragen, um zu verstehen, welches Tool Sie benoetigen. Beschreiben Sie Ihre Idee einfach in Ihren eigenen Worten — unsere KI erledigt den Rest.",
         saveNote:
-          "Sie koennen jederzeit Ihren Fortschritt speichern und spaeter zurueckkommen.",
+          "Ihr Fortschritt wird automatisch gespeichert, waehrend Sie die Schritte durchlaufen.",
         cta: "Los geht's!",
       },
       projectMode: {
@@ -309,7 +309,7 @@ const translations = {
       steps: {
         start: "Debut",
         projectMode: "Type de projet",
-        toolIdea: "Idee d'outil",
+        toolIdea: "Idee",
         usersRoles: "Utilisateurs & Roles",
         workflows: "Workflows",
         files: "Fichiers",
@@ -320,7 +320,7 @@ const translations = {
         description:
           "Nous allons vous guider avec quelques questions simples pour comprendre quel outil vous avez besoin. Decrivez votre idee simplement — notre IA s'occupe du reste.",
         saveNote:
-          "A tout moment, vous pouvez sauvegarder et revenir plus tard.",
+          "Votre progression est sauvegardee automatiquement a chaque etape.",
         cta: "C'est parti !",
       },
       projectMode: {

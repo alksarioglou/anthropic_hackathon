@@ -42,7 +42,7 @@ const STEP_ORDER: StepId[] = [
 export default function OnboardingPage() {
   const router = useRouter();
   const saveOnboarding = useMutation(api.onboarding.save);
-  const [onboardingId, setOnboardingId] = useState<Id<"onboarding"> | null>(null);
+  const [onboardingId] = useState<Id<"onboarding"> | null>(null);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<StepId>>(new Set());
   const [payload, setPayload] = useState<OnboardingPayload>(createEmptyPayload());
@@ -152,15 +152,6 @@ export default function OnboardingPage() {
     }
   }
 
-  async function handleSave() {
-    const id = await saveOnboarding({
-      id: onboardingId ?? undefined,
-      ...payload,
-      status: "draft",
-    });
-    setOnboardingId(id);
-  }
-
   async function handleSubmit() {
     const id = await saveOnboarding({
       id: onboardingId ?? undefined,
@@ -217,7 +208,6 @@ export default function OnboardingPage() {
         currentStep={currentStepId}
         completedSteps={completedSteps}
         onStepClick={handleStepClick}
-        onSave={handleSave}
       />
 
       <main className="flex flex-1 justify-center px-4 py-6 sm:px-6 lg:px-8">

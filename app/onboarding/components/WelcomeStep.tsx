@@ -11,7 +11,7 @@ export function WelcomeStep({ userName, onStart }: WelcomeStepProps) {
   const { t } = useTranslation();
 
   return (
-    <div className="max-w-2xl px-8">
+    <div className="max-w-2xl px-8 py-12">
       <h1 className="text-3xl font-semibold text-foreground mb-6">
         {t("onboarding.welcome.greeting", { name: userName })}
       </h1>
