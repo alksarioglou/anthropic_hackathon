@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { Show, SignUp, useUser } from "@clerk/nextjs";
+import { SignUp } from "@clerk/nextjs";
 import { MaturaLogo } from "@/components/MaturaLogo";
 
 const FEATURES = [
@@ -33,72 +31,59 @@ const FEATURES = [
 ];
 
 export default function IntroPage() {
-  const router = useRouter();
-  const { isSignedIn, isLoaded } = useUser();
-
-  useEffect(() => {
-    if (isLoaded && isSignedIn) {
-      router.replace("/home");
-    }
-  }, [isLoaded, isSignedIn, router]);
-
-  if (!isLoaded) return null;
-
   return (
-    <Show when="signed-out">
-      <div className="min-h-screen bg-background">
-        {/* Header */}
-        <header className="border-b border-border bg-nav-bg">
-          <div className="mx-auto flex h-14 max-w-6xl items-center px-4 sm:px-6">
-            <MaturaLogo className="h-7" href="/intro" />
-          </div>
-        </header>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b border-border bg-nav-bg">
+        <div className="flex h-14 items-center px-6">
+          <MaturaLogo className="h-7" href="/intro" />
+        </div>
+      </header>
 
-        {/* Hero */}
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-12 lg:py-20">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start">
-            {/* Left: copy + features */}
-            <div className="flex flex-col gap-8">
-              <div>
-                <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground leading-tight">
-                  From rough idea to<br />implementation-ready plan
-                </h1>
-                <p className="mt-4 text-lg text-foreground-secondary leading-relaxed max-w-lg">
-                  matura is an agentic AI system that transforms a software concept into a
-                  complete SDLC specification — vision, requirements, architecture, backlog,
-                  tests, and more — in minutes, not weeks.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                {FEATURES.map((f) => (
-                  <div
-                    key={f.title}
-                    className="rounded-xl border border-border bg-card-bg p-4"
-                  >
-                    <span className="text-xl">{f.icon}</span>
-                    <h3 className="mt-2 text-sm font-semibold text-foreground">
-                      {f.title}
-                    </h3>
-                    <p className="mt-1 text-xs text-foreground-secondary leading-relaxed">
-                      {f.description}
-                    </p>
-                  </div>
-                ))}
-              </div>
-
-              <p className="text-xs text-foreground-muted">
-                Built for the Swiss Life Claude Builders Hackathon. Powered by Claude.
+      {/* Hero */}
+      <div className="px-6 py-12 lg:py-20 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start">
+          {/* Left: copy + features */}
+          <div className="flex flex-col gap-8">
+            <div>
+              <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground leading-tight">
+                From rough idea to<br />implementation-ready plan
+              </h1>
+              <p className="mt-4 text-lg text-foreground-secondary leading-relaxed max-w-lg">
+                matura is an agentic AI system that transforms a software concept into a
+                complete SDLC specification — vision, requirements, architecture, backlog,
+                tests, and more — in minutes, not weeks.
               </p>
             </div>
 
-            {/* Right: Clerk SignUp */}
-            <div className="flex justify-center lg:justify-end">
-              <SignUp routing="hash" afterSignUpUrl="/home" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              {FEATURES.map((f) => (
+                <div
+                  key={f.title}
+                  className="rounded-xl border border-border bg-card-bg p-4"
+                >
+                  <span className="text-xl">{f.icon}</span>
+                  <h3 className="mt-2 text-sm font-semibold text-foreground">
+                    {f.title}
+                  </h3>
+                  <p className="mt-1 text-xs text-foreground-secondary leading-relaxed">
+                    {f.description}
+                  </p>
+                </div>
+              ))}
             </div>
+
+            <p className="text-xs text-foreground-muted">
+              Powered by <span className="font-medium">Claude</span> · Built for the Swiss Life Hackathon
+            </p>
+          </div>
+
+          {/* Right: Clerk SignUp */}
+          <div className="flex justify-center lg:justify-end">
+            <SignUp routing="hash" afterSignUpUrl="/home" />
           </div>
         </div>
       </div>
-    </Show>
+    </div>
   );
 }

@@ -57,7 +57,7 @@ function DashboardContent() {
   const data = sampleData;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background animate-fade-in">
       {/* Top bar */}
       <nav className="flex items-center justify-between border-b border-border bg-nav-bg px-4 sm:px-6 lg:px-8 h-14 sticky top-0 z-10">
         <MaturaLogo className="h-7" />
@@ -85,7 +85,7 @@ function DashboardContent() {
         <div className="space-y-6">
           {/* ─── Generated Artifacts (from workspace) ─── */}
           {projectArtifacts?.status === "completed" && (
-            <section className="rounded-lg border border-border bg-background p-6">
+            <section className="rounded-lg border border-border bg-background p-6 animate-card-in">
               <div className="mb-4">
                 <h3 className="text-lg font-semibold text-foreground">Generated Artifacts</h3>
                 <p className="text-sm text-foreground-secondary mt-1">
@@ -115,7 +115,7 @@ function DashboardContent() {
           )}
 
           {/* ─── SHARED: Strategic ─── */}
-          <section>
+          <section className="animate-card-in" style={{ animationDelay: "60ms" }}>
             <h3 className="text-xs font-medium text-foreground-muted uppercase tracking-widest mb-3">Strategic & Business</h3>
             <div className="space-y-4">
               <BusinessCasePanel data={data.shared.businessCase} />
@@ -128,7 +128,7 @@ function DashboardContent() {
 
           {/* ─── MODE-SPECIFIC: Internal ─── */}
           {projectMode === "internal" && (
-            <section>
+            <section className="animate-card-in" style={{ animationDelay: "120ms" }}>
               <h3 className="text-xs font-medium text-error uppercase tracking-widest mb-3">Internal Analysis</h3>
               <div className="space-y-4">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -142,7 +142,7 @@ function DashboardContent() {
 
           {/* ─── MODE-SPECIFIC: External ─── */}
           {projectMode === "external" && (
-            <section>
+            <section className="animate-card-in" style={{ animationDelay: "120ms" }}>
               <h3 className="text-xs font-medium text-primary uppercase tracking-widest mb-3">External / Client-Facing Analysis</h3>
               <div className="space-y-4">
                 <CompliancePanel data={data.external.compliance} />
@@ -157,7 +157,7 @@ function DashboardContent() {
           )}
 
           {/* ─── SHARED: Team & Operations ─── */}
-          <section>
+          <section className="animate-card-in" style={{ animationDelay: "180ms" }}>
             <h3 className="text-xs font-medium text-foreground-muted uppercase tracking-widest mb-3">Team & Operations</h3>
             <div className="space-y-4">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

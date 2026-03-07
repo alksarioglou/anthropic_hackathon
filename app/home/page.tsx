@@ -3,9 +3,30 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
+import { useUser } from "@clerk/nextjs";
 import { api } from "@/convex/_generated/api";
 import { UserButton } from "@clerk/nextjs";
 import { MaturaLogo } from "@/components/MaturaLogo";
+import { ThemeToggle } from "@/components/ThemeToggle";
+
+const EXAMPLES = [
+  {
+    label: "IT Incident Portal",
+    text: "An internal portal where employees can report IT incidents, support teams triage and resolve them, and critical fixes become tracked change requests requiring manager approval before rollout. Track SLAs, send automated reminders, and provide a dashboard with incident trends.",
+  },
+  {
+    label: "Team Task Tracker",
+    text: "A lightweight web app where teams create tasks, assign owners, set due dates, and track status across projects. Managers need a Kanban board and burndown charts. Tasks support sub-tasks, file attachments, and comments with email notifications.",
+  },
+  {
+    label: "Employee Onboarding",
+    text: "A self-service onboarding platform for new hires. HR creates checklists per department. New employees follow a guided checklist with due dates. Managers see completion status with automatic reminders and a final HR sign-off.",
+  },
+  {
+    label: "Contract Approvals",
+    text: "A tool for routing contracts through multi-stage approval workflows. Legal drafts, Finance reviews, then C-level approves. Each stage has configurable deadlines, comment threads, and version history. Full audit log required.",
+  },
+];
 
 function formatDate(ts: number) {
   return new Date(ts).toLocaleDateString("en-GB", {
@@ -44,8 +65,8 @@ function ProjectRow({ project, onNavigate }: {
   }
 
   return (
-    <div className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-border last:border-b-0 items-center hover:bg-card-bg transition-colors">
-      <div className="col-span-4 min-w-0">
+    <div className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-border last:border-b-0 items-center hover:bg-card-bg transition-colors animate-fade-in">
+      <div className="col-span-6 min-w-0">
         {isEditing ? (
           <input
             ref={inputRef}
@@ -76,14 +97,6 @@ function ProjectRow({ project, onNavigate }: {
       </div>
 
       <div className="col-span-2">
-        <span className={`inline-flex text-xs px-3 py-1 rounded-full font-medium ${
-          project.mode === "internal" ? "bg-accent/10 text-accent" : "bg-primary/10 text-primary"
-        }`}>
-          {project.mode === "internal" ? "Internal" : "External"}
-        </span>
-      </div>
-
-      <div className="col-span-2">
         <p className="text-sm text-foreground-secondary">{formatDate(project.createdAt)}</p>
       </div>
 
@@ -92,13 +105,7 @@ function ProjectRow({ project, onNavigate }: {
           onClick={() => onNavigate(`/workspace?projectId=${project._id}`)}
           className="rounded-full border border-border px-4 py-1.5 text-xs font-medium text-foreground-secondary hover:text-foreground hover:border-foreground-muted transition-colors"
         >
-          Workspace
-        </button>
-        <button
-          onClick={() => onNavigate(`/dashboard?projectId=${project._id}`)}
-          className="rounded-full border border-accent/30 bg-accent/5 px-4 py-1.5 text-xs font-medium text-accent hover:bg-accent/10 transition-colors"
-        >
-          Dashboard
+          Open →
         </button>
       </div>
     </div>
@@ -107,8 +114,11 @@ function ProjectRow({ project, onNavigate }: {
 
 export default function HomePage() {
   const router = useRouter();
+  const { user } = useUser();
   const projects = useQuery(api.projects.list);
   const [idea, setIdea] = useState("");
+
+  const firstName = user?.firstName ?? user?.username ?? null;
 
   function handleStart() {
     const trimmed = idea.trim();
@@ -118,20 +128,25 @@ export default function HomePage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-screen flex-col bg-background animate-fade-in">
       <nav className="border-b border-border bg-nav-bg">
-        <div className="flex items-center justify-between h-14 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto w-full">
+        <div className="flex items-center justify-between h-14 px-6 w-full">
           <MaturaLogo className="h-7" />
-          <UserButton />
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <UserButton />
+          </div>
         </div>
       </nav>
 
-      <main className="flex flex-1 px-4 py-4 sm:px-6 lg:px-8">
-        <div className="w-full max-w-6xl mx-auto rounded-2xl bg-card-bg min-h-[calc(100vh-100px)] px-8 sm:px-16 lg:px-24 py-12">
+      <main className="flex flex-1 px-6 lg:px-16 py-12">
+        <div className="w-full">
 
           {/* Idea input */}
           <div className="mb-12">
-            <h1 className="text-4xl font-bold text-foreground mb-2">What do you want to build?</h1>
+            <h1 className="text-4xl font-bold text-foreground mb-2">
+              {firstName ? `What do you want to build, ${firstName}?` : "What do you want to build?"}
+            </h1>
             <p className="text-foreground-secondary text-lg leading-relaxed mb-6">
               Describe your software idea and we'll generate a complete implementation plan in minutes.
             </p>
@@ -155,6 +170,19 @@ export default function HomePage() {
                 </button>
               </div>
             </div>
+
+            {/* Example buttons */}
+            <div className="flex flex-wrap gap-2 mt-3">
+              {EXAMPLES.map((ex) => (
+                <button
+                  key={ex.label}
+                  onClick={() => setIdea(ex.text)}
+                  className="text-xs px-3 py-1.5 rounded-full border border-border text-foreground-secondary hover:border-accent hover:text-accent transition-colors"
+                >
+                  {ex.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Past flows */}
@@ -163,8 +191,7 @@ export default function HomePage() {
               <h2 className="text-2xl font-bold text-foreground mb-5">Your Flows</h2>
               <div className="rounded-xl border border-border bg-background overflow-hidden">
                 <div className="grid grid-cols-12 gap-4 px-6 py-3 border-b border-border text-xs font-medium text-foreground-muted uppercase tracking-wider">
-                  <div className="col-span-4">Project</div>
-                  <div className="col-span-2">Mode</div>
+                  <div className="col-span-6">Project</div>
                   <div className="col-span-2">Created</div>
                   <div className="col-span-4 text-right">Actions</div>
                 </div>
@@ -180,6 +207,13 @@ export default function HomePage() {
               Your flows will appear here once you create one.
             </p>
           )}
+
+          {/* Powered by Claude */}
+          <p className="mt-12 text-xs text-foreground-muted text-center">
+            Powered by{" "}
+            <span className="font-medium text-foreground-secondary">Claude</span>
+            {" "}· Built for the Swiss Life Hackathon
+          </p>
         </div>
       </main>
     </div>

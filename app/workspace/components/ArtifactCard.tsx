@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import type { ArtifactType } from "@/types";
-import { ARTIFACT_LABELS } from "@/types";
+import { ARTIFACT_LABELS, ARTIFACT_COLORS } from "@/types";
 import { ExpandIcon, SparklesIcon } from "./icons";
 
 export function ArtifactCard({
@@ -34,7 +34,9 @@ export function ArtifactCard({
   const [refinement, setRefinement] = useState("");
   const [isRefining, setIsRefining] = useState(false);
   const [refineError, setRefineError] = useState<string | null>(null);
+  const [sparkleAnim, setSparkleAnim] = useState(false);
 
+  const cardRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const refineRef = useRef<HTMLTextAreaElement>(null);
 
@@ -47,6 +49,14 @@ export function ArtifactCard({
   useEffect(() => {
     if (showRefine) refineRef.current?.focus();
   }, [showRefine]);
+
+  // Auto-expand and scroll into center when entering edit mode
+  useEffect(() => {
+    if (editMode) {
+      setExpanded(true);
+      setTimeout(() => cardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 50);
+    }
+  }, [editMode]);
 
   async function submitRefinement() {
     if (!refinement.trim() || isRefining) return;
@@ -70,6 +80,14 @@ export function ArtifactCard({
     }
   }
 
+  function handleSparkleClick() {
+    setSparkleAnim(true);
+    setTimeout(() => setSparkleAnim(false), 400);
+    setShowRefine((v) => !v);
+    setRefineError(null);
+  }
+
+  const accentColor = ARTIFACT_COLORS[type];
   const borderColor = editMode
     ? "border-amber-500/50"
     : showRefine
@@ -78,7 +96,8 @@ export function ArtifactCard({
 
   return (
     <div
-      className={`group relative rounded-xl border bg-card-bg transition-colors animate-card-in ${borderColor}`}
+      ref={cardRef}
+      className={`group relative rounded-xl border bg-card-bg transition-colors animate-card-in ${borderColor} ${accentColor}`}
       style={{ animationDelay: `${index * 80}ms` }}
     >
       {/* Card header */}
@@ -161,19 +180,20 @@ export function ArtifactCard({
           <div className="relative">
             {(isDone || isStreaming) && !editMode && !isRefining && (
               <button
-                onClick={() => { setShowRefine((v) => !v); setRefineError(null); }}
+                onClick={handleSparkleClick}
                 title="Refine with AI"
                 className={`
                   absolute top-2 right-2 z-10
                   w-7 h-7 rounded-full border flex items-center justify-center
                   shadow-sm transition-all duration-150
+                  ${sparkleAnim ? "scale-75" : ""}
                   ${showRefine
                     ? "opacity-100 scale-100 border-primary bg-primary text-primary-foreground"
                     : "opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 border-border bg-card-bg text-foreground-muted hover:border-primary hover:bg-primary hover:text-primary-foreground"
                   }
                 `}
               >
-                <SparklesIcon className="w-3.5 h-3.5" />
+                <SparklesIcon className={`w-3.5 h-3.5 ${sparkleAnim ? "animate-spin" : ""}`} />
               </button>
             )}
 
@@ -214,12 +234,13 @@ export function ArtifactCard({
           onChange={(e) => setEditText(e.target.value)}
           className="w-full px-4 py-3 bg-background text-xs text-foreground font-mono leading-relaxed resize-none focus:outline-none rounded-b-xl"
           rows={14}
+          autoFocus
         />
       )}
 
       {/* Inline AI refinement form */}
       {(isDone || isStreaming) && showRefine && (
-        <div className="px-4 py-3 border-t border-border bg-background space-y-2 rounded-b-xl">
+        <div className="px-4 py-3 border-t border-border bg-background space-y-2 rounded-b-xl animate-refine-in">
           <textarea
             ref={refineRef}
             value={refinement}

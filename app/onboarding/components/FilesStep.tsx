@@ -7,12 +7,11 @@ import type { UploadedFile } from "@/lib/onboarding-payload";
 interface FilesStepProps {
   files: UploadedFile[];
   onChange: (files: UploadedFile[]) => void;
-  onContinue: () => void;
 }
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
-export function FilesStep({ files, onChange, onContinue }: FilesStepProps) {
+export function FilesStep({ files, onChange }: FilesStepProps) {
   const { t } = useTranslation();
 
   const handleFiles = useCallback(
@@ -109,14 +108,6 @@ export function FilesStep({ files, onChange, onContinue }: FilesStepProps) {
             ))}
           </div>
 
-          <div className="mt-10 flex justify-center">
-            <button
-              onClick={onContinue}
-              className="rounded-full bg-primary px-16 py-3.5 text-base font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
-            >
-              {t("onboarding.questions.continue")}
-            </button>
-          </div>
       </div>
     </div>
   );

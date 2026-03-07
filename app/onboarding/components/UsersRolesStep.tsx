@@ -9,7 +9,6 @@ interface UsersRolesStepProps {
   userRoles: string;
   accessControl: string;
   onChange: (updates: Partial<OnboardingPayload>) => void;
-  onContinue: () => void;
   streamingFields?: Partial<Record<PrefillField, string>>;
 }
 
@@ -17,7 +16,6 @@ export function UsersRolesStep({
   userRoles,
   accessControl,
   onChange,
-  onContinue,
   streamingFields = {},
 }: UsersRolesStepProps) {
   const { t } = useTranslation();
@@ -52,14 +50,6 @@ export function UsersRolesStep({
           rows={2}
         />
 
-        <div className="flex justify-center pt-4">
-          <button
-            onClick={onContinue}
-            className="rounded-full bg-primary px-16 py-3.5 text-base font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
-          >
-            {t("onboarding.questions.continue")}
-          </button>
-        </div>
       </div>
     </div>
   );

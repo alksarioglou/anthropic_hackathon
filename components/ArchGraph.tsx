@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback } from "react";
 import {
   ReactFlow,
   Node,
@@ -8,6 +8,8 @@ import {
   Background,
   Controls,
   BackgroundVariant,
+  useReactFlow,
+  ReactFlowProvider,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import Dagre from "@dagrejs/dagre";
@@ -32,43 +34,50 @@ function applyDagreLayout(nodes: Node[], edges: Edge[]): Node[] {
   });
 }
 
-interface Props {
-  graph: ArchitectureGraph | null;
+function CenterButton() {
+  const { fitView } = useReactFlow();
+  const handleFit = useCallback(() => {
+    fitView({ padding: 0.2, duration: 400 });
+  }, [fitView]);
+
+  return (
+    <button
+      onClick={handleFit}
+      title="Fit to screen"
+      className="absolute top-3 right-3 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/90 border border-border text-xs font-medium text-foreground-secondary hover:text-foreground shadow-sm backdrop-blur-sm transition-colors"
+    >
+      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+        <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+      </svg>
+      Fit
+    </button>
+  );
 }
 
-export function ArchGraph({ graph }: Props) {
-  const [nodes, setNodes] = useState<Node[]>([]);
-  const [edges, setEdges] = useState<Edge[]>([]);
+function ArchGraphInner({ graph }: { graph: ArchitectureGraph | null }) {
+  const rawEdges: Edge[] = graph ? graph.edges.map((e) => ({
+    id: e.id,
+    source: e.source,
+    target: e.target,
+    label: e.label,
+    animated: e.animated ?? false,
+    type: "smoothstep",
+    style: { stroke: "#94a3b8" },
+    labelStyle: { fontSize: 11, fill: "#64748b" },
+    labelBgStyle: { fill: "#f8fafc", fillOpacity: 0.85 },
+  })) : [];
 
-  useEffect(() => {
-    if (!graph) return;
-
-    const rawNodes: Node[] = graph.nodes.map((n) => ({
+  const nodes: Node[] = graph ? applyDagreLayout(
+    graph.nodes.map((n) => ({
       id: n.id,
       type: n.type,
-      position: { x: 0, y: 0 }, // dagre will override these
-      data: {
-        label: n.label,
-        description: n.description,
-        technology: n.technology,
-      },
-    }));
+      position: { x: 0, y: 0 },
+      data: { label: n.label, description: n.description, technology: n.technology },
+    })),
+    rawEdges,
+  ) : [];
 
-    const rawEdges: Edge[] = graph.edges.map((e) => ({
-      id: e.id,
-      source: e.source,
-      target: e.target,
-      label: e.label,
-      animated: e.animated ?? false,
-      type: "smoothstep",
-      style: { stroke: "#94a3b8" },
-      labelStyle: { fontSize: 11, fill: "#64748b" },
-      labelBgStyle: { fill: "#f8fafc", fillOpacity: 0.85 },
-    }));
-
-    setNodes(applyDagreLayout(rawNodes, rawEdges));
-    setEdges(rawEdges);
-  }, [graph]);
+  const edges = rawEdges;
 
   if (!graph) {
     return (
@@ -90,18 +99,33 @@ export function ArchGraph({ graph }: Props) {
   }
 
   return (
-    <ReactFlow
-      nodes={nodes}
-      edges={edges}
-      nodeTypes={nodeTypes}
-      colorMode="light"
-      fitView
-      fitViewOptions={{ padding: 0.2 }}
-      attributionPosition="bottom-right"
-      style={{ background: "#f5f5f5" }}
-    >
-      <Background variant={BackgroundVariant.Dots} gap={16} size={1} color="#d4d4d4" />
-      <Controls />
-    </ReactFlow>
+    <div className="relative w-full h-full">
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        nodeTypes={nodeTypes}
+        colorMode="light"
+        fitView
+        fitViewOptions={{ padding: 0.2 }}
+        attributionPosition="bottom-right"
+        style={{ background: "#f5f5f5" }}
+      >
+        <Background variant={BackgroundVariant.Dots} gap={16} size={1} color="#d4d4d4" />
+        <Controls />
+      </ReactFlow>
+      <CenterButton />
+    </div>
+  );
+}
+
+interface Props {
+  graph: ArchitectureGraph | null;
+}
+
+export function ArchGraph({ graph }: Props) {
+  return (
+    <ReactFlowProvider>
+      <ArchGraphInner graph={graph} />
+    </ReactFlowProvider>
   );
 }

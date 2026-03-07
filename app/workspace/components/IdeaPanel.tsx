@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
 import type { Project } from "@/types";
 import { SparklesIcon } from "./icons";
 
@@ -24,7 +25,7 @@ function SidebarQuestionRow({ label, value }: { label: string; value: string }) 
       </button>
       {open && (
         <div className="px-3 pb-2 pl-7">
-          <p className="text-xs text-foreground-muted whitespace-pre-line leading-relaxed">{value}</p>
+          <div className="md-content"><ReactMarkdown>{value.replace(/^[•·‣▸] /gm, "- ")}</ReactMarkdown></div>
         </div>
       )}
     </div>

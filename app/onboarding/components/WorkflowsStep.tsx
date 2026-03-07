@@ -10,7 +10,6 @@ interface WorkflowsStepProps {
   approvals: string;
   notifications: string;
   onChange: (updates: Partial<OnboardingPayload>) => void;
-  onContinue: () => void;
   streamingFields?: Partial<Record<PrefillField, string>>;
 }
 
@@ -19,7 +18,6 @@ export function WorkflowsStep({
   approvals,
   notifications,
   onChange,
-  onContinue,
   streamingFields = {},
 }: WorkflowsStepProps) {
   const { t } = useTranslation();
@@ -63,14 +61,6 @@ export function WorkflowsStep({
             rows={2}
           />
 
-          <div className="flex justify-center pt-4">
-            <button
-              onClick={onContinue}
-              className="rounded-full bg-primary px-16 py-3.5 text-base font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
-            >
-              {t("onboarding.questions.continue")}
-            </button>
-          </div>
       </div>
     </div>
   );

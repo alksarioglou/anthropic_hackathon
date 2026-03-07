@@ -122,6 +122,13 @@ button:not(:disabled):active { transform: scale(0.97); transition: transform 0.1
 }
 .animate-refine-in { animation: refine-in 0.2s cubic-bezier(0.22, 1, 0.36, 1) both; }
 
+/* ─── View switch transition ───────────────────────────────────────────────── */
+@keyframes view-switch {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-view-switch { animation: view-switch 0.2s cubic-bezier(0.4, 0, 0.2, 1) both; }
+
 /* ─── Onboarding step transitions ─────────────────────────────────────────── */
 @keyframes step-enter-next {
   from { opacity: 0; transform: translateY(72px); }

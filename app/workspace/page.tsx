@@ -7,6 +7,7 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { UserButton } from "@clerk/nextjs";
 import { MaturaLogo } from "@/components/MaturaLogo";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import type { Artifacts, ArtifactType } from "@/types";
 import { BUSINESS_ARTIFACTS, TECH_ARTIFACTS } from "@/types";
 import { ArchGraph } from "@/components/ArchGraph";
@@ -17,6 +18,7 @@ import { ArtifactCard } from "./components/ArtifactCard";
 import { ArtifactModal } from "./components/ArtifactModal";
 import { IdeaPanel } from "./components/IdeaPanel";
 import { SidebarViewSwitch } from "./components/SidebarViewSwitch";
+import { GlobalRefineBar } from "./components/GlobalRefineBar";
 
 function WorkspaceContent() {
   const router = useRouter();
@@ -32,17 +34,19 @@ function WorkspaceContent() {
   const convexArtifacts = useQuery(api.artifacts.getByProject, projectId ? { projectId } : "skip");
   const saveArtifactsMut = useMutation(api.artifacts.saveCompleted);
   const updateArtifactMut = useMutation(api.artifacts.updateArtifact);
+  const saveArchMut = useMutation(api.artifacts.saveArch);
   const updateProjectMut = useMutation(api.projects.update);
 
   const [artifacts, setArtifacts] = useState<Artifacts>({});
   const [streamingContent, setStreamingContent] = useState<Partial<Record<ArtifactType, string>>>({});
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeView, setActiveView] = useState<"business" | "technical" | "architecture">("technical");
+  const [activeView, setActiveView] = useState<"business" | "technical" | "architecture">("business");
   const [refinementCount, setRefinementCount] = useState(0);
   const [focusedType, setFocusedType] = useState<ArtifactType | null>(null);
   const [isRenamingTitle, setIsRenamingTitle] = useState(false);
   const [renameTitleValue, setRenameTitleValue] = useState("");
+  const [isGlobalRefining, setIsGlobalRefining] = useState(false);
 
   // Architecture view state
   type ArchPhase = "idle" | "loading" | "graph-ready" | "streaming" | "done" | "error";
@@ -51,6 +55,9 @@ function WorkspaceContent() {
   const [archProse, setArchProse] = useState("");
   const [archStatusMessages, setArchStatusMessages] = useState<string[]>([]);
   const archGenerated = useRef(false);
+  const archGraphRef = useRef<ArchitectureGraph | null>(null);
+  const archProseRef = useRef("");
+  const archStatusRef = useRef<string[]>([]);
 
   // Refs for accurate accumulation without stale closures
   const streamAccumRef = useRef<Partial<Record<ArtifactType, string>>>({});
@@ -102,6 +109,16 @@ function WorkspaceContent() {
         setArtifacts(loaded);
         artifactsRef.current = loaded;
         hasLoadedFromDb.current = true;
+        // Restore saved architecture if available
+        if (convexArtifacts.archGraph) {
+          try {
+            setArchGraph(JSON.parse(convexArtifacts.archGraph) as ArchitectureGraph);
+            setArchPhase("done");
+            archGenerated.current = true;
+          } catch { /* ignore parse errors */ }
+        }
+        if (convexArtifacts.archProse) setArchProse(convexArtifacts.archProse);
+        if (convexArtifacts.archStatusMessages) setArchStatusMessages(convexArtifacts.archStatusMessages);
         return;
       }
     }
@@ -295,15 +312,46 @@ function WorkspaceContent() {
         const { parsed, remainder } = parseSSEBuffer(buffer);
         buffer = remainder;
         for (const event of parsed) {
-          if (event.type === "status") setArchStatusMessages((prev) => [...prev, event.data.message as string]);
-          if (event.type === "architecture") { setArchGraph(event.data as unknown as ArchitectureGraph); setArchPhase("graph-ready"); }
-          if (event.type === "prose") { setArchPhase("streaming"); setArchProse((prev) => prev + (event.data.chunk as string)); }
+          if (event.type === "status") {
+            const msg = event.data.message as string;
+            archStatusRef.current = [...archStatusRef.current, msg];
+            setArchStatusMessages((prev) => [...prev, msg]);
+          }
+          if (event.type === "architecture") {
+            const g = event.data as unknown as ArchitectureGraph;
+            archGraphRef.current = g;
+            setArchGraph(g);
+            setArchPhase("graph-ready");
+          }
+          if (event.type === "prose") {
+            archProseRef.current += event.data.chunk as string;
+            setArchPhase("streaming");
+            setArchProse((prev) => prev + (event.data.chunk as string));
+          }
           if (event.type === "done") setArchPhase("done");
           if (event.type === "error") setArchPhase("error");
         }
       }
-    } catch { setArchPhase("error"); }
-  }, []);
+    } catch { setArchPhase("error"); return; }
+    // Save arch to DB after full generation
+    if (projectId && archGraphRef.current) {
+      saveArchMut({
+        projectId,
+        archGraph: JSON.stringify(archGraphRef.current),
+        archProse: archProseRef.current,
+        archStatusMessages: archStatusRef.current,
+      }).catch(() => {});
+    }
+  }, [projectId, saveArchMut]);
+
+  async function handleGlobalRefine(refinement: string) {
+    setIsGlobalRefining(true);
+    try {
+      await handleStartRefinement("requirements", refinement);
+    } finally {
+      setIsGlobalRefining(false);
+    }
+  }
 
   function handleViewChange(v: "business" | "technical" | "architecture") {
     setActiveView(v);
@@ -316,7 +364,7 @@ function WorkspaceContent() {
   const artifactTypes = activeView === "business" ? BUSINESS_ARTIFACTS : TECH_ARTIFACTS;
 
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground">
+    <div className="flex flex-col h-screen bg-background text-foreground animate-fade-in">
       {/* Header */}
       <header className="sticky top-0 z-50 shrink-0 border-b border-border bg-nav-bg">
         <div className="flex items-center h-14 px-4 sm:px-6 justify-between">
@@ -393,20 +441,13 @@ function WorkspaceContent() {
                 {refinementCount} refinement{refinementCount !== 1 ? "s" : ""} applied
               </span>
             )}
-            {projectId && (
-              <button
-                onClick={() => router.push(`/dashboard?projectId=${projectId}`)}
-                className="rounded-full border border-border px-4 py-1.5 text-xs font-medium text-foreground-secondary hover:text-foreground hover:border-foreground-muted transition-colors"
-              >
-                Dashboard
-              </button>
-            )}
             <button
               onClick={() => router.push("/home")}
               className="rounded-full border border-border px-4 py-1.5 text-xs font-medium text-foreground-secondary hover:text-foreground hover:border-foreground-muted transition-colors"
             >
               Home
             </button>
+            <ThemeToggle />
             <UserButton />
           </div>
         </div>
@@ -415,7 +456,7 @@ function WorkspaceContent() {
       {/* Body: sidebar + main */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left sidebar */}
-        <aside className="w-64 shrink-0 border-r border-border bg-card-bg flex flex-col overflow-y-auto">
+        <aside className="w-80 shrink-0 border-r border-border bg-card-bg flex flex-col overflow-y-auto">
           <div className="m-3 rounded-xl bg-primary p-4 shrink-0">
             <p className="text-[10px] font-semibold uppercase tracking-widest text-primary-foreground/70 mb-1">
               Project Workspace
@@ -457,7 +498,7 @@ function WorkspaceContent() {
           )}
 
           {!error && project && (
-            <div>
+            <div key={activeView} className="animate-view-switch">
               {/* Architecture view */}
               {activeView === "architecture" && (
                 <div className="flex gap-6 h-[calc(100vh-8rem)] rounded-xl overflow-hidden border border-border">
@@ -496,6 +537,12 @@ function WorkspaceContent() {
           )}
         </main>
       </div>
+
+      <GlobalRefineBar
+        isRefining={isGlobalRefining}
+        disabled={isGenerating || Object.keys(artifacts).length === 0}
+        onSubmit={handleGlobalRefine}
+      />
 
       {/* Focus modal */}
       {focusedType && (

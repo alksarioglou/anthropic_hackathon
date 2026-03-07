@@ -167,7 +167,7 @@ export default function OnboardingPage() {
       idea: ideaParts.join("\n\n"),
       description: payload.toolDescription,
       mode: payload.projectMode,
-      dashboardStyle: "technical",
+      dashboardStyle: "business",
     });
 
     // Navigate immediately, then generate AI title in the background
@@ -209,63 +209,59 @@ export default function OnboardingPage() {
         currentStep={currentStepId}
         completedSteps={completedSteps}
         onStepClick={handleStepClick}
+        streamingFields={prefillStreaming}
       />
 
-      <main className="flex flex-1 px-4 py-4 sm:px-6 lg:px-8">
-        <div className="w-full rounded-2xl bg-card-bg min-h-[calc(100vh-100px)] flex flex-col justify-center relative px-8 sm:px-16 lg:px-24 overflow-hidden">
-          <div
-            key={currentStepIndex}
-            className={`flex flex-col items-center w-full flex-1 justify-center ${animDir === "forward" ? "step-enter-next" : "step-enter-prev"}`}
-          >
-            {currentStepId === "toolIdea" && (
-              <ToolIdeaStep
-                value={payload.toolDescription}
-                onChange={(v) => updatePayload({ toolDescription: v })}
-                onContinue={handleToolIdeaContinue}
-              />
-            )}
+      <main className="flex flex-1 px-6 lg:px-16">
+        <div
+          key={currentStepIndex}
+          className={`flex flex-col items-center w-full flex-1 justify-center pb-24 ${animDir === "forward" ? "step-enter-next" : "step-enter-prev"}`}
+        >
+          {currentStepId === "toolIdea" && (
+            <ToolIdeaStep
+              value={payload.toolDescription}
+              onChange={(v) => updatePayload({ toolDescription: v })}
+              onContinue={handleToolIdeaContinue}
+            />
+          )}
 
-            {currentStepId === "usersRoles" && (
-              <UsersRolesStep
-                userRoles={payload.userRoles}
-                accessControl={payload.accessControl}
-                onChange={updatePayload}
-                onContinue={handleNext}
-                streamingFields={prefillStreaming}
-              />
-            )}
+          {currentStepId === "usersRoles" && (
+            <UsersRolesStep
+              userRoles={payload.userRoles}
+              accessControl={payload.accessControl}
+              onChange={updatePayload}
+              streamingFields={prefillStreaming}
+            />
+          )}
 
-            {currentStepId === "workflows" && (
-              <WorkflowsStep
-                keyWorkflows={payload.keyWorkflows}
-                approvals={payload.approvals}
-                notifications={payload.notifications}
-                onChange={updatePayload}
-                onContinue={handleNext}
-                streamingFields={prefillStreaming}
-              />
-            )}
+          {currentStepId === "workflows" && (
+            <WorkflowsStep
+              keyWorkflows={payload.keyWorkflows}
+              approvals={payload.approvals}
+              notifications={payload.notifications}
+              onChange={updatePayload}
+              streamingFields={prefillStreaming}
+            />
+          )}
 
-            {currentStepId === "files" && (
-              <FilesStep
-                files={payload.uploadedFiles}
-                onChange={(files) => updatePayload({ uploadedFiles: files })}
-                onContinue={handleNext}
-              />
-            )}
+          {currentStepId === "files" && (
+            <FilesStep
+              files={payload.uploadedFiles}
+              onChange={(files) => updatePayload({ uploadedFiles: files })}
+            />
+          )}
 
-            {currentStepId === "review" && (
-              <ReviewStep payload={payload} onSubmit={handleSubmit} />
-            )}
-          </div>
-
-          <BottomNav
-            onBack={handleBack}
-            onForward={handleNext}
-            canGoBack={currentStepIndex > 0}
-            canGoForward={canProceed()}
-          />
+          {currentStepId === "review" && (
+            <ReviewStep payload={payload} onSubmit={handleSubmit} />
+          )}
         </div>
+
+        <BottomNav
+          onBack={handleBack}
+          onForward={handleNext}
+          canGoBack={currentStepIndex > 0}
+          canGoForward={canProceed()}
+        />
       </main>
     </div>
   );

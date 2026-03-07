@@ -60,15 +60,6 @@ export function ToolIdeaStep({ value, onChange, onContinue }: ToolIdeaStepProps)
             className="w-full rounded-lg border border-input-border bg-input-bg p-4 text-foreground placeholder:text-foreground-muted outline-none transition-colors focus:border-input-border-focus resize-none"
           />
 
-          <div className="mt-8 flex justify-center">
-            <button
-              onClick={onContinue}
-              disabled={!value.trim()}
-              className="rounded-full bg-primary px-16 py-3.5 text-base font-medium text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {t("onboarding.questions.continue")}
-            </button>
-          </div>
       </div>
     </div>
   );

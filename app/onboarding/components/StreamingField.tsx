@@ -194,7 +194,7 @@ export function StreamingField({ label, value, streamingText, onChange, placehol
         <textarea
           value={editText}
           onChange={(e) => setEditText(e.target.value)}
-          rows={Math.max(rows, 6)}
+          rows={Math.max(rows, 10)}
           autoFocus
           className="w-full px-3 py-2.5 bg-transparent text-sm text-foreground outline-none resize-y font-mono leading-relaxed rounded-b-lg"
         />
