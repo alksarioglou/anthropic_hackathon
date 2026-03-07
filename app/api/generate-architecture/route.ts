@@ -23,9 +23,16 @@ Architecture guidelines:
 - Reuse existing Swiss Life systems wherever possible (PAS, Claims Service, HR API, Kong Gateway, etc.)
 - Comply with all legal and compliance documents found (data residency, audit logging, SSO, etc.)
 - Use Swiss Life approved technology stacks
-- Position nodes logically: x from 0 to 1200, y from 0 to 800. Use a top-to-bottom or left-to-right flow.
 - Include all major components: frontend, backend services, databases, message queues, external integrations
 - Add edge labels to describe communication protocols (REST, Kafka, gRPC, HTTPS)
+
+Node quality rules (IMPORTANT):
+- Keep node labels SHORT (2-4 words max, e.g. "API Gateway", "User Service", "Events DB")
+- Keep technology values SHORT — just the core tech name (e.g. "PostgreSQL", "Kafka", "Next.js", "ECS Fargate"). Do NOT include regions, hostnames, versions, or deployment details in the technology field.
+- Use descriptions sparingly — only add a description if the node's purpose isn't obvious from its label
+- Aim for 8-15 nodes total. Combine closely related components into one node rather than creating many small ones (e.g. one "Backend Services" node rather than separate nodes for each microservice, unless they have distinct technology stacks)
+- Do NOT set animated on edges — all edges should be static
+- Do NOT duplicate information: if a technology appears in the technology field, don't repeat it in the label or description
 
 Do not explain yourself before calling output_architecture. Just search, then output.`;
 

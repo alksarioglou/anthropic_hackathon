@@ -7,7 +7,6 @@ import {
   Edge,
   Background,
   Controls,
-  MiniMap,
   BackgroundVariant,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
@@ -20,7 +19,7 @@ const NODE_HEIGHT = 90;
 
 function applyDagreLayout(nodes: Node[], edges: Edge[]): Node[] {
   const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: "TB", ranksep: 90, nodesep: 60, marginx: 40, marginy: 40 });
+  g.setGraph({ rankdir: "TB", ranksep: 120, nodesep: 80, marginx: 50, marginy: 50 });
 
   nodes.forEach((node) => g.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT }));
   edges.forEach((edge) => g.setEdge(edge.source, edge.target));
@@ -60,11 +59,13 @@ export function ArchGraph({ graph }: Props) {
       source: e.source,
       target: e.target,
       label: e.label,
-      animated: e.animated ?? false,
+      animated: false,
       type: "smoothstep",
-      style: { stroke: "#94a3b8" },
-      labelStyle: { fontSize: 11, fill: "#64748b" },
-      labelBgStyle: { fill: "#f8fafc", fillOpacity: 0.85 },
+      style: { stroke: "#94a3b8", strokeWidth: 1.5 },
+      labelStyle: { fontSize: 10, fill: "#64748b", fontWeight: 500 },
+      labelBgStyle: { fill: "#f8fafc", fillOpacity: 0.9 },
+      labelBgPadding: [6, 3] as [number, number],
+      labelBgBorderRadius: 4,
     }));
 
     setNodes(applyDagreLayout(rawNodes, rawEdges));
@@ -97,24 +98,10 @@ export function ArchGraph({ graph }: Props) {
       nodeTypes={nodeTypes}
       fitView
       fitViewOptions={{ padding: 0.2 }}
-      attributionPosition="bottom-right"
+      proOptions={{ hideAttribution: true }}
     >
       <Background variant={BackgroundVariant.Dots} gap={16} size={1} color="#e2e8f0" />
       <Controls />
-      <MiniMap
-        nodeColor={(n) => {
-          const colors: Record<string, string> = {
-            service: "#93c5fd",
-            database: "#c4b5fd",
-            queue: "#fcd34d",
-            gateway: "#86efac",
-            external: "#d1d5db",
-            group: "#e5e7eb",
-          };
-          return colors[n.type ?? "service"] ?? "#93c5fd";
-        }}
-        maskColor="rgba(248,250,252,0.7)"
-      />
     </ReactFlow>
   );
 }
