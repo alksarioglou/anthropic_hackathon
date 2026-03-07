@@ -61,7 +61,7 @@ export function GlobalRefineBar({ isRefining, disabled, onSubmit }: GlobalRefine
   return (
     // Always centered — only width animates, no position jump
     <div
-      className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-20 transition-[width] duration-300 ease-out ${
+      className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-auto transition-[width] duration-300 ease-out ${
         isActive ? "w-[min(680px,calc(100vw-2rem))]" : "w-[min(420px,calc(100vw-2rem))]"
       }`}
     >

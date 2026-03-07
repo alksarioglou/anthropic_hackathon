@@ -22,9 +22,13 @@ export const create = mutation({
 });
 
 export const get = query({
-  args: { id: v.id("projects") },
+  args: { id: v.string() },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.id);
+    try {
+      return await ctx.db.get(args.id as Parameters<typeof ctx.db.get>[0]);
+    } catch {
+      return null;
+    }
   },
 });
 

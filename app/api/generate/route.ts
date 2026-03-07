@@ -38,8 +38,6 @@ const ARTIFACT_PROMPTS: Record<
 const ALL_ARTIFACT_TYPES: ArtifactType[] = [
   "vision",
   "requirements",
-  "architecture",
-  "frameworks",
   "backlog",
   "tests",
   "cost_estimate",

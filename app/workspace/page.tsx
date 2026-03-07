@@ -93,10 +93,14 @@ function WorkspaceContent() {
   useEffect(() => { artifactsRef.current = artifacts; }, [artifacts]);
   useEffect(() => { activeViewRef.current = activeView; }, [activeView]);
 
-  // Redirect if no project ID in URL
+  // Redirect if no project ID, or project not found (invalid/stale ID)
   useEffect(() => {
-    if (!projectId) router.replace("/");
+    if (!projectId) router.replace("/home");
   }, [projectId, router]);
+
+  useEffect(() => {
+    if (convexProject === null) router.replace("/home");
+  }, [convexProject, router]);
 
   // Load artifacts from Convex when available, and auto-generate if empty
   useEffect(() => {
@@ -104,33 +108,35 @@ function WorkspaceContent() {
 
     setActiveView(convexProject.dashboardStyle);
 
-    if (convexArtifacts && convexArtifacts.status === "completed") {
+    // Still loading from DB — wait
+    if (convexArtifacts === undefined) return;
+
+    const keys: ArtifactType[] = ["vision", "requirements", "architecture", "frameworks", "backlog", "tests", "competitive_analysis", "cost_estimate"];
+
+    if (convexArtifacts !== null) {
+      // Artifacts record exists — load whatever is there, never auto-regenerate
       const loaded: Artifacts = {};
-      const keys: ArtifactType[] = ["vision", "requirements", "architecture", "frameworks", "backlog", "tests", "competitive_analysis", "cost_estimate"];
       for (const key of keys) {
         const val = convexArtifacts[key as keyof typeof convexArtifacts];
         if (typeof val === "string") loaded[key] = val;
       }
-      if (Object.keys(loaded).length > 0) {
-        setArtifacts(loaded);
-        artifactsRef.current = loaded;
-        hasLoadedFromDb.current = true;
-        // Restore saved architecture if available
-        if (convexArtifacts.archGraph) {
-          try {
-            setArchGraph(JSON.parse(convexArtifacts.archGraph) as ArchitectureGraph);
-            setArchPhase("done");
-            archGenerated.current = true;
-          } catch { /* ignore parse errors */ }
-        }
-        if (convexArtifacts.archProse) setArchProse(convexArtifacts.archProse);
-        if (convexArtifacts.archStatusMessages) setArchStatusMessages(convexArtifacts.archStatusMessages);
-        return;
+      setArtifacts(loaded);
+      artifactsRef.current = loaded;
+      hasLoadedFromDb.current = true;
+      // Restore saved architecture if available
+      if (convexArtifacts.archGraph) {
+        try {
+          setArchGraph(JSON.parse(convexArtifacts.archGraph) as ArchitectureGraph);
+          setArchPhase("done");
+          archGenerated.current = true;
+        } catch { /* ignore parse errors */ }
       }
+      if (convexArtifacts.archProse) setArchProse(convexArtifacts.archProse);
+      if (convexArtifacts.archStatusMessages) setArchStatusMessages(convexArtifacts.archStatusMessages);
+      return;
     }
 
-    if (convexArtifacts === undefined) return;
-
+    // convexArtifacts is null — no record exists yet, this is a new flow
     hasLoadedFromDb.current = true;
     if (!hasGenerated.current) {
       hasGenerated.current = true;
@@ -492,40 +498,15 @@ function WorkspaceContent() {
             </button>
             <ThemeToggle />
             <LanguageSwitcher />
-            <ThemeToggle />
             <UserButton />
           </div>
         </div>
       </header>
 
-      {/* Body: sidebar + main */}
+      {/* Body: main + right sidebar */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left sidebar */}
-        <aside className="w-80 shrink-0 border-r border-border bg-card-bg flex flex-col overflow-y-auto">
-          <div className="m-3 rounded-xl bg-primary p-4 shrink-0">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-primary-foreground/70 mb-1">
-              {t("workspace.projectWorkspace")}
-            </p>
-            <p className="text-sm font-bold text-primary-foreground leading-snug line-clamp-2">
-              {project?.name ?? "Loading…"}
-            </p>
-            <span className="mt-2 inline-block text-[10px] px-2 py-0.5 rounded font-medium bg-primary-foreground/20 text-primary-foreground">
-              {project?.mode === "external" ? t("workspace.externalMode") : t("workspace.internalMode")}
-            </span>
-          </div>
-
-          <div className="flex-1 overflow-y-auto px-3 pb-3 flex flex-col gap-4">
-            {project && (
-              <>
-                <IdeaPanel project={project} onUpdateIdea={handleUpdateIdea} onUpdateQuestionnaire={handleUpdateQuestionnaire} />
-                <SidebarViewSwitch active={activeView} onChange={handleViewChange} />
-              </>
-            )}
-          </div>
-        </aside>
-
         {/* Main content */}
-        <main className="flex-1 overflow-y-auto bg-background p-6">
+        <main className="flex-1 overflow-y-auto bg-background p-6 pb-28">
           {error && (
             <div className="flex flex-col items-center justify-center h-64 gap-3 text-center px-6">
               <p className="text-sm text-error">{t("workspace.generationFailed")}</p>
@@ -581,6 +562,30 @@ function WorkspaceContent() {
             </div>
           )}
         </main>
+
+        {/* Right sidebar */}
+        <aside className="w-80 shrink-0 border-l border-border bg-card-bg flex flex-col overflow-y-auto">
+          <div className="m-3 rounded-xl bg-primary p-4 shrink-0">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-primary-foreground/70 mb-1">
+              {t("workspace.projectWorkspace")}
+            </p>
+            <p className="text-sm font-bold text-primary-foreground leading-snug line-clamp-2">
+              {project?.name ?? "Loading…"}
+            </p>
+            <span className="mt-2 inline-block text-[10px] px-2 py-0.5 rounded font-medium bg-primary-foreground/20 text-primary-foreground">
+              {project?.mode === "external" ? t("workspace.externalMode") : t("workspace.internalMode")}
+            </span>
+          </div>
+
+          <div className="flex-1 overflow-y-auto px-3 pb-3 flex flex-col gap-4">
+            {project && (
+              <>
+                <IdeaPanel project={project} onUpdateIdea={handleUpdateIdea} onUpdateQuestionnaire={handleUpdateQuestionnaire} />
+                <SidebarViewSwitch active={activeView} onChange={handleViewChange} />
+              </>
+            )}
+          </div>
+        </aside>
       </div>
 
       <GlobalRefineBar

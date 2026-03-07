@@ -1,19 +1,24 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import type { Id } from "./_generated/dataModel";
 
 export const getByProject = query({
-  args: { projectId: v.id("projects") },
+  args: { projectId: v.string() },
   handler: async (ctx, args) => {
-    return await ctx.db
-      .query("artifacts")
-      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
-      .first();
+    try {
+      return await ctx.db
+        .query("artifacts")
+        .withIndex("by_project", (q) => q.eq("projectId", args.projectId as Id<"projects">))
+        .first();
+    } catch {
+      return null;
+    }
   },
 });
 
 export const upsert = mutation({
   args: {
-    projectId: v.id("projects"),
+    projectId: v.string(),
     status: v.union(
       v.literal("generating"),
       v.literal("completed"),
@@ -30,29 +35,31 @@ export const upsert = mutation({
     error: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const projectId = args.projectId as Id<"projects">;
     const existing = await ctx.db
       .query("artifacts")
-      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .withIndex("by_project", (q) => q.eq("projectId", projectId))
       .first();
     if (existing) {
       const { projectId: _, ...updates } = args;
       await ctx.db.patch(existing._id, updates);
       return existing._id;
     }
-    return await ctx.db.insert("artifacts", args);
+    return await ctx.db.insert("artifacts", { ...args, projectId });
   },
 });
 
 export const updateArtifact = mutation({
   args: {
-    projectId: v.id("projects"),
+    projectId: v.string(),
     key: v.string(),
     value: v.string(),
   },
   handler: async (ctx, args) => {
+    const projectId = args.projectId as Id<"projects">;
     const existing = await ctx.db
       .query("artifacts")
-      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .withIndex("by_project", (q) => q.eq("projectId", projectId))
       .first();
     if (!existing) throw new Error("Artifacts record not found");
     await ctx.db.patch(existing._id, { [args.key]: args.value });
@@ -61,28 +68,29 @@ export const updateArtifact = mutation({
 
 export const saveArch = mutation({
   args: {
-    projectId: v.id("projects"),
+    projectId: v.string(),
     archGraph: v.string(),
     archProse: v.string(),
     archStatusMessages: v.array(v.string()),
   },
   handler: async (ctx, args) => {
+    const projectId = args.projectId as Id<"projects">;
     const existing = await ctx.db
       .query("artifacts")
-      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .withIndex("by_project", (q) => q.eq("projectId", projectId))
       .first();
     const fields = { archGraph: args.archGraph, archProse: args.archProse, archStatusMessages: args.archStatusMessages };
     if (existing) {
       await ctx.db.patch(existing._id, fields);
     } else {
-      await ctx.db.insert("artifacts", { projectId: args.projectId, status: "generating", ...fields });
+      await ctx.db.insert("artifacts", { projectId, status: "generating", ...fields });
     }
   },
 });
 
 export const saveCompleted = mutation({
   args: {
-    projectId: v.id("projects"),
+    projectId: v.string(),
     vision: v.optional(v.string()),
     requirements: v.optional(v.string()),
     architecture: v.optional(v.string()),
@@ -93,7 +101,8 @@ export const saveCompleted = mutation({
     cost_estimate: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const { projectId, ...artifactFields } = args;
+    const { projectId: rawId, ...artifactFields } = args;
+    const projectId = rawId as Id<"projects">;
     const existing = await ctx.db
       .query("artifacts")
       .withIndex("by_project", (q) => q.eq("projectId", projectId))

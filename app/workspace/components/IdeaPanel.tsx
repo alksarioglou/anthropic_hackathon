@@ -88,65 +88,48 @@ function QuestionEditModal({
 function SidebarQuestionRow({
   label,
   value,
-  onSave,
+  onEditClick,
 }: {
   label: string;
   value: string;
-  onSave?: (newValue: string) => void;
+  onEditClick?: () => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
-
-  function handleSave(newValue: string) {
-    onSave?.(newValue);
-    setModalOpen(false);
-  }
 
   return (
-    <>
-      <div className="border-b border-border last:border-b-0">
-        <button
-          onClick={() => setOpen((v) => !v)}
-          className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-background-secondary transition-colors group"
-        >
-          <div className="flex items-center gap-1.5 min-w-0">
-            <svg
-              className={`w-3 h-3 text-foreground-muted shrink-0 transition-transform duration-200 ${open ? "rotate-90" : ""}`}
-              viewBox="0 0 16 16" fill="currentColor"
-            >
-              <path d="M6 3l5 5-5 5V3z" />
-            </svg>
-            <span className="text-xs font-medium text-foreground-secondary truncate">{label}</span>
-          </div>
-          {onSave && (
-            <span
-              role="button"
-              onClick={(e) => { e.stopPropagation(); setModalOpen(true); }}
-              className="opacity-0 group-hover:opacity-100 text-xs text-foreground-muted hover:text-foreground border border-border hover:border-foreground-muted px-1.5 py-0.5 rounded transition-all duration-150 cursor-pointer"
-            >
-              Edit
-            </span>
-          )}
-        </button>
+    <div className="border-b border-border last:border-b-0">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-background-secondary transition-colors group"
+      >
+        <div className="flex items-center gap-1.5 min-w-0">
+          <svg
+            className={`w-3 h-3 text-foreground-muted shrink-0 transition-transform duration-200 ${open ? "rotate-90" : ""}`}
+            viewBox="0 0 16 16" fill="currentColor"
+          >
+            <path d="M6 3l5 5-5 5V3z" />
+          </svg>
+          <span className="text-xs font-medium text-foreground-secondary truncate">{label}</span>
+        </div>
+        {onEditClick && (
+          <span
+            role="button"
+            onClick={(e) => { e.stopPropagation(); onEditClick(); }}
+            className="opacity-0 group-hover:opacity-100 text-xs text-foreground-muted hover:text-foreground border border-border hover:border-foreground-muted px-1.5 py-0.5 rounded transition-all duration-150 cursor-pointer"
+          >
+            Edit
+          </span>
+        )}
+      </button>
 
-        <div className={`overflow-hidden transition-all duration-200 ${open ? "max-h-[600px]" : "max-h-0"}`}>
-          <div className="px-3 pb-2 pl-7">
-            <div className="md-content text-xs text-foreground-secondary">
-              <ReactMarkdown>{value.replace(/^[•·‣▸] /gm, "- ")}</ReactMarkdown>
-            </div>
+      <div className={`overflow-hidden transition-all duration-200 ${open ? "max-h-[600px]" : "max-h-0"}`}>
+        <div className="px-3 pb-2 pl-7 max-h-48 overflow-y-auto">
+          <div className="md-content text-xs text-foreground-secondary">
+            <ReactMarkdown>{value.replace(/^[•·‣▸] /gm, "- ")}</ReactMarkdown>
           </div>
         </div>
       </div>
-
-      {modalOpen && (
-        <QuestionEditModal
-          label={label}
-          value={value}
-          onSave={handleSave}
-          onClose={() => setModalOpen(false)}
-        />
-      )}
-    </>
+    </div>
   );
 }
 
@@ -319,6 +302,7 @@ export function IdeaPanel({ project, onUpdateIdea, onUpdateQuestionnaire }: Idea
   const [aiRefineModalOpen, setAiRefineModalOpen] = useState(false);
   const [isRefining, setIsRefining] = useState(false);
   const [streamingDesc, setStreamingDesc] = useState<string | null>(null);
+  const [editingField, setEditingField] = useState<{ field: string; label: string; value: string } | null>(null);
 
   const description = project.description ?? project.idea.split("\n\n")[0];
   const q = project.questionnaire;
@@ -378,6 +362,14 @@ export function IdeaPanel({ project, onUpdateIdea, onUpdateQuestionnaire }: Idea
         onClose={() => { if (!isRefining) setAiRefineModalOpen(false); }}
         isRefining={isRefining}
         streamingDesc={streamingDesc}
+      />
+    )}
+    {editingField && (
+      <QuestionEditModal
+        label={editingField.label}
+        value={editingField.value}
+        onSave={(v) => { onUpdateQuestionnaire?.(editingField.field, v); setEditingField(null); }}
+        onClose={() => setEditingField(null)}
       />
     )}
     <div
@@ -444,7 +436,7 @@ export function IdeaPanel({ project, onUpdateIdea, onUpdateQuestionnaire }: Idea
                 key={field}
                 label={FIELD_LABELS[field]}
                 value={q[field]!}
-                onSave={onUpdateQuestionnaire ? (v) => onUpdateQuestionnaire(field, v) : undefined}
+                onEditClick={onUpdateQuestionnaire ? () => setEditingField({ field, label: FIELD_LABELS[field], value: q[field]! }) : undefined}
               />
             ) : null
           )}
