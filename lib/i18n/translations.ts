@@ -18,7 +18,7 @@ const translations = {
       welcome: {
         greeting: "Hello, {{name}}",
         description:
-          "We'll guide you through a few simple questions to understand what tool you need. Just describe your idea in plain language — our AI will handle the rest and create a complete plan for you: vision, requirements, cost estimate, and more.",
+          "We'll guide you through a few simple questions to understand what software you need. Just describe your idea in plain language — our AI will handle the rest and create a complete plan for you: vision, requirements, cost estimate, and more.",
         saveNote:
           "Your progress is saved automatically as you move through each step.",
         cta: "Let's get started!",
@@ -42,10 +42,10 @@ const translations = {
           "e.g. We need an internal portal where employees can report IT incidents, support teams can triage and resolve them, and important fixes can become tracked change requests with approvals...",
       },
       usersRoles: {
-        title: "Who will use this tool?",
+        title: "Who will use this software?",
         description:
-          "Tell us about the people who will use this tool and what they should be able to do. This helps us design the right experience for each type of user.",
-        rolesLabel: "What types of users will this tool have?",
+          "Tell us about the people who will use this software and what they should be able to do. This helps us design the right experience for each type of user.",
+        rolesLabel: "What types of users will this software have?",
         rolesPlaceholder:
           "e.g. Admin, Team Lead, Regular Employee, Support Agent, Approver...",
         accessLabel:
@@ -54,7 +54,7 @@ const translations = {
           "e.g. Only admins can delete records, team leads can approve requests, employees can only see their own data...",
       },
       workflows: {
-        title: "How should the tool work?",
+        title: "How should the software work?",
         description:
           "Walk us through the main processes. Think of it as explaining how work flows from start to finish.",
         keyWorkflowsLabel:
@@ -81,7 +81,7 @@ const translations = {
       },
       review: {
         title: "Review your submission",
-        toolIdeaLabel: "Tool idea",
+        toolIdeaLabel: "Software idea",
         projectModeLabel: "Project type",
         userRolesLabel: "User types",
         accessControlLabel: "Permissions",
@@ -172,7 +172,7 @@ const translations = {
           },
         ],
         advantage:
-          "Your tool is purpose-built for your organization's specific workflows, combining incident management with change tracking in a single, simple interface — without the overhead of enterprise platforms.",
+          "Your software is purpose-built for your organization's specific workflows, combining incident management with change tracking in a single, simple interface — without the overhead of enterprise platforms.",
       },
     },
     landing: {
@@ -240,7 +240,7 @@ const translations = {
       welcome: {
         greeting: "Hallo, {{name}}",
         description:
-          "Wir fuehren Sie durch einige einfache Fragen, um zu verstehen, welches Tool Sie benoetigen. Beschreiben Sie Ihre Idee einfach in Ihren eigenen Worten — unsere KI erledigt den Rest.",
+          "Wir fuehren Sie durch einige einfache Fragen, um zu verstehen, welche Software Sie benoetigen. Beschreiben Sie Ihre Idee einfach in Ihren eigenen Worten — unsere KI erledigt den Rest.",
         saveNote:
           "Ihr Fortschritt wird automatisch gespeichert, waehrend Sie die Schritte durchlaufen.",
         cta: "Los geht's!",
@@ -257,17 +257,17 @@ const translations = {
           "Fuehrt Wettbewerbsanalysen durch. Kann oeffentliche Informationen einbeziehen.",
       },
       toolIdea: {
-        title: "Beschreiben Sie Ihre Tool-Idee",
+        title: "Beschreiben Sie Ihre Software-Idee",
         question:
-          "Welches Tool brauchen Sie? Beschreiben Sie das Problem und was es loesen soll. Je mehr Details, desto besser.",
+          "Welche Software brauchen Sie? Beschreiben Sie das Problem und was es loesen soll. Je mehr Details, desto besser.",
         placeholder:
           "z.B. Wir brauchen ein internes Portal, in dem Mitarbeiter IT-Vorfaelle melden koennen...",
       },
       usersRoles: {
-        title: "Wer wird dieses Tool nutzen?",
+        title: "Wer wird diese Software nutzen?",
         description:
-          "Erzaehlen Sie uns von den Personen, die dieses Tool verwenden werden und was sie tun koennen sollen.",
-        rolesLabel: "Welche Benutzertypen wird dieses Tool haben?",
+          "Erzaehlen Sie uns von den Personen, die diese Software verwenden werden und was sie tun koennen sollen.",
+        rolesLabel: "Welche Benutzertypen wird diese Software haben?",
         rolesPlaceholder:
           "z.B. Admin, Teamleiter, Mitarbeiter, Support-Agent, Genehmiger...",
         accessLabel: "Wer soll was tun koennen?",
@@ -275,7 +275,7 @@ const translations = {
           "z.B. Nur Admins koennen loeschen, Teamleiter koennen genehmigen...",
       },
       workflows: {
-        title: "Wie soll das Tool funktionieren?",
+        title: "Wie soll die Software funktionieren?",
         description:
           "Beschreiben Sie die Hauptprozesse. Erklaeren Sie, wie die Arbeit von Anfang bis Ende ablaeuft.",
         keyWorkflowsLabel: "Was sind die Hauptschritte oder Prozesse?",
@@ -299,7 +299,7 @@ const translations = {
       },
       review: {
         title: "Ihre Eingaben ueberpruefen",
-        toolIdeaLabel: "Tool-Idee",
+        toolIdeaLabel: "Software-Idee",
         projectModeLabel: "Projekttyp",
         userRolesLabel: "Benutzertypen",
         accessControlLabel: "Berechtigungen",
@@ -416,7 +416,7 @@ const translations = {
       welcome: {
         greeting: "Bonjour, {{name}}",
         description:
-          "Nous allons vous guider avec quelques questions simples pour comprendre quel outil vous avez besoin. Decrivez votre idee simplement — notre IA s'occupe du reste.",
+          "Nous allons vous guider avec quelques questions simples pour comprendre quel logiciel vous avez besoin. Decrivez votre idee simplement — notre IA s'occupe du reste.",
         saveNote:
           "Votre progression est sauvegardee automatiquement a chaque etape.",
         cta: "C'est parti !",
@@ -433,17 +433,17 @@ const translations = {
           "Execute des analyses concurrentielles. Peut integrer des informations publiques.",
       },
       toolIdea: {
-        title: "Decrivez votre idee d'outil",
+        title: "Decrivez votre idee de logiciel",
         question:
-          "De quel outil avez-vous besoin ? Decrivez le probleme et ce qu'il devrait faire.",
+          "De quel logiciel avez-vous besoin ? Decrivez le probleme et ce qu'il devrait faire.",
         placeholder:
           "ex. Nous avons besoin d'un portail interne ou les employes peuvent signaler des incidents...",
       },
       usersRoles: {
-        title: "Qui utilisera cet outil ?",
+        title: "Qui utilisera ce logiciel ?",
         description:
-          "Parlez-nous des personnes qui utiliseront cet outil et de ce qu'elles devraient pouvoir faire.",
-        rolesLabel: "Quels types d'utilisateurs cet outil aura-t-il ?",
+          "Parlez-nous des personnes qui utiliseront ce logiciel et de ce qu'elles devraient pouvoir faire.",
+        rolesLabel: "Quels types d'utilisateurs ce logiciel aura-t-il ?",
         rolesPlaceholder:
           "ex. Admin, Chef d'equipe, Employe, Agent de support, Approbateur...",
         accessLabel: "Qui devrait pouvoir faire quoi ?",
@@ -451,7 +451,7 @@ const translations = {
           "ex. Seuls les admins peuvent supprimer, les chefs d'equipe peuvent approuver...",
       },
       workflows: {
-        title: "Comment l'outil devrait-il fonctionner ?",
+        title: "Comment le logiciel devrait-il fonctionner ?",
         description:
           "Decrivez les processus principaux. Expliquez comment le travail se deroule du debut a la fin.",
         keyWorkflowsLabel: "Quelles sont les etapes principales ?",
@@ -475,7 +475,7 @@ const translations = {
       },
       review: {
         title: "Verifiez votre soumission",
-        toolIdeaLabel: "Idee d'outil",
+        toolIdeaLabel: "Idee de logiciel",
         projectModeLabel: "Type de projet",
         userRolesLabel: "Types d'utilisateurs",
         accessControlLabel: "Permissions",

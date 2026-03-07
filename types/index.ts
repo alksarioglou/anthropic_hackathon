@@ -95,3 +95,15 @@ export const TECH_ARTIFACTS: ArtifactType[] = [
   "tests",
   "competitive_analysis",
 ];
+
+// Distinct left-border accent colors per artifact type
+export const ARTIFACT_COLORS: Record<ArtifactType, string> = {
+  vision:               "border-l-4 border-l-violet-400",
+  requirements:         "border-l-4 border-l-blue-400",
+  architecture:         "border-l-4 border-l-slate-400",
+  frameworks:           "border-l-4 border-l-orange-400",
+  backlog:              "border-l-4 border-l-green-400",
+  tests:                "border-l-4 border-l-amber-400",
+  competitive_analysis: "border-l-4 border-l-pink-400",
+  cost_estimate:        "border-l-4 border-l-teal-400",
+};

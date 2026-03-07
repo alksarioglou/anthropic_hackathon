@@ -7,7 +7,6 @@ import type { UploadedFile } from "@/lib/onboarding-payload";
 interface FilesStepProps {
   files: UploadedFile[];
   onChange: (files: UploadedFile[]) => void;
-  onContinue: () => void;
 }
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -50,7 +49,7 @@ async function readFileContent(file: File): Promise<string | undefined> {
   }
 }
 
-export function FilesStep({ files, onChange, onContinue }: FilesStepProps) {
+export function FilesStep({ files, onChange }: FilesStepProps) {
   const { t } = useTranslation();
 
   const handleFiles = useCallback(
@@ -107,7 +106,7 @@ export function FilesStep({ files, onChange, onContinue }: FilesStepProps) {
           <div
             onDrop={handleDrop}
             onDragOver={handleDragOver}
-            className="border-2 border-dashed border-border rounded-xl p-8 text-center cursor-pointer hover:border-primary transition-colors bg-white"
+            className="border-2 border-dashed border-input-border rounded-lg p-8 text-center cursor-pointer hover:border-primary transition-colors"
           >
             <label className="cursor-pointer">
               <input
@@ -135,7 +134,7 @@ export function FilesStep({ files, onChange, onContinue }: FilesStepProps) {
             {files.map((file, index) => (
               <div
                 key={`${file.name}-${index}`}
-                className="flex items-center justify-between rounded-xl border border-border bg-white px-4 py-2"
+                className="flex items-center justify-between rounded-lg border border-border-light bg-background px-4 py-2"
               >
                 <div className="min-w-0 flex-1">
                   <p className="text-sm text-foreground">{file.name}</p>
@@ -158,14 +157,6 @@ export function FilesStep({ files, onChange, onContinue }: FilesStepProps) {
             ))}
           </div>
 
-          <div className="mt-10 flex justify-center">
-            <button
-              onClick={onContinue}
-              className="rounded-full bg-primary px-16 py-3.5 text-base font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
-            >
-              {t("onboarding.questions.continue")}
-            </button>
-          </div>
       </div>
     </div>
   );

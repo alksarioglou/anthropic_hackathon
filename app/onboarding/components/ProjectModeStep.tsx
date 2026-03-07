@@ -34,8 +34,8 @@ export function ProjectModeStep({
                 flex-1 rounded-xl border-2 p-6 text-left transition-all hover:-translate-y-0.5 hover:shadow-lg
                 ${
                   projectMode === "internal"
-                    ? "border-primary bg-white shadow-md"
-                    : "border-border bg-white hover:border-foreground-muted"
+                    ? "border-primary bg-primary/5 shadow-md"
+                    : "border-border hover:border-foreground-muted"
                 }
               `}
             >
@@ -61,8 +61,8 @@ export function ProjectModeStep({
                 flex-1 rounded-xl border-2 p-6 text-left transition-all hover:-translate-y-0.5 hover:shadow-lg
                 ${
                   projectMode === "external"
-                    ? "border-primary bg-white shadow-md"
-                    : "border-border bg-white hover:border-foreground-muted"
+                    ? "border-primary bg-primary/5 shadow-md"
+                    : "border-border hover:border-foreground-muted"
                 }
               `}
             >

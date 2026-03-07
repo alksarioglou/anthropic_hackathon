@@ -1,14 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback } from "react";
 import {
   ReactFlow,
   Node,
   Edge,
   Background,
-  Controls,
-  MiniMap,
+  Panel,
   BackgroundVariant,
+  useReactFlow,
+  ReactFlowProvider,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import Dagre from "@dagrejs/dagre";
@@ -33,53 +34,62 @@ function applyDagreLayout(nodes: Node[], edges: Edge[]): Node[] {
   });
 }
 
-interface Props {
-  graph: ArchitectureGraph | null;
+function FitButton() {
+  const { fitView } = useReactFlow();
+  const handleFit = useCallback(() => {
+    fitView({ padding: 0.2, duration: 400 });
+  }, [fitView]);
+
+  return (
+    <Panel position="top-right">
+      <button
+        onClick={handleFit}
+        title="Fit to screen"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-background border border-border text-xs font-medium text-foreground-secondary hover:text-foreground shadow-sm transition-colors"
+      >
+        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+        </svg>
+        Fit
+      </button>
+    </Panel>
+  );
 }
 
-export function ArchGraph({ graph }: Props) {
-  const [nodes, setNodes] = useState<Node[]>([]);
-  const [edges, setEdges] = useState<Edge[]>([]);
+function ArchGraphInner({ graph }: { graph: ArchitectureGraph | null }) {
+  const rawEdges: Edge[] = graph ? graph.edges.map((e) => ({
+    id: e.id,
+    source: e.source,
+    target: e.target,
+    label: e.label,
+    animated: e.animated ?? false,
+    type: "smoothstep",
+    style: { stroke: "#94a3b8" },
+    labelStyle: { fontSize: 11, fill: "#64748b" },
+    labelBgStyle: { fill: "#f8fafc", fillOpacity: 0.85 },
+  })) : [];
 
-  useEffect(() => {
-    if (!graph) return;
-
-    const rawNodes: Node[] = graph.nodes.map((n) => ({
+  const nodes: Node[] = graph ? applyDagreLayout(
+    graph.nodes.map((n) => ({
       id: n.id,
       type: n.type,
-      position: { x: 0, y: 0 }, // dagre will override these
-      data: {
-        label: n.label,
-        description: n.description,
-        technology: n.technology,
-      },
-    }));
+      position: { x: 0, y: 0 },
+      data: { label: n.label, description: n.description, technology: n.technology },
+    })),
+    rawEdges,
+  ) : [];
 
-    const rawEdges: Edge[] = graph.edges.map((e) => ({
-      id: e.id,
-      source: e.source,
-      target: e.target,
-      label: e.label,
-      animated: e.animated ?? false,
-      type: "smoothstep",
-      style: { stroke: "#94a3b8" },
-      labelStyle: { fontSize: 11, fill: "#64748b" },
-      labelBgStyle: { fill: "#f8fafc", fillOpacity: 0.85 },
-    }));
-
-    setNodes(applyDagreLayout(rawNodes, rawEdges));
-    setEdges(rawEdges);
-  }, [graph]);
+  const edges = rawEdges;
 
   if (!graph) {
     return (
-      <div className="w-full h-full flex items-center justify-center bg-gray-50 rounded-xl">
-        <div className="flex flex-col items-center gap-4 text-gray-400">
+      <div className="w-full h-full flex items-center justify-center bg-background-secondary">
+        <div className="flex flex-col items-center gap-4 text-foreground-muted">
           <div className="w-full max-w-sm space-y-3 px-8">
             {[100, 80, 90, 70].map((w, i) => (
               <div
                 key={i}
-                className="h-10 bg-gray-200 rounded-lg animate-pulse"
+                className="h-10 bg-background-tertiary rounded-lg animate-pulse"
                 style={{ width: `${w}%` }}
               />
             ))}
@@ -91,30 +101,32 @@ export function ArchGraph({ graph }: Props) {
   }
 
   return (
-    <ReactFlow
-      nodes={nodes}
-      edges={edges}
-      nodeTypes={nodeTypes}
-      fitView
-      fitViewOptions={{ padding: 0.2 }}
-      attributionPosition="bottom-right"
-    >
-      <Background variant={BackgroundVariant.Dots} gap={16} size={1} color="#e2e8f0" />
-      <Controls />
-      <MiniMap
-        nodeColor={(n) => {
-          const colors: Record<string, string> = {
-            service: "#93c5fd",
-            database: "#c4b5fd",
-            queue: "#fcd34d",
-            gateway: "#86efac",
-            external: "#d1d5db",
-            group: "#e5e7eb",
-          };
-          return colors[n.type ?? "service"] ?? "#93c5fd";
-        }}
-        maskColor="rgba(248,250,252,0.7)"
-      />
-    </ReactFlow>
+    <div className="relative w-full h-full">
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        nodeTypes={nodeTypes}
+        colorMode="light"
+        fitView
+        fitViewOptions={{ padding: 0.2 }}
+        attributionPosition="bottom-right"
+        style={{ background: "#f5f5f5" }}
+      >
+        <Background variant={BackgroundVariant.Dots} gap={16} size={1} color="#d4d4d4" />
+        <FitButton />
+      </ReactFlow>
+    </div>
+  );
+}
+
+interface Props {
+  graph: ArchitectureGraph | null;
+}
+
+export function ArchGraph({ graph }: Props) {
+  return (
+    <ReactFlowProvider>
+      <ArchGraphInner graph={graph} />
+    </ReactFlowProvider>
   );
 }
