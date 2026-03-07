@@ -13,15 +13,23 @@ export function ToolIdeaStep({ value, onChange, onContinue }: ToolIdeaStepProps)
 
   return (
     <div className="max-w-2xl w-full px-8">
+      {/* Info card */}
+      <div className="rounded-lg bg-white border border-border-light p-6 mb-8 shadow-sm">
+        <h2 className="text-xl font-medium text-foreground mb-3">
+          {t("onboarding.toolIdea.title")}
+        </h2>
+        <p className="text-foreground-muted text-sm leading-relaxed">
+          {t("onboarding.toolIdea.question")}
+        </p>
+      </div>
+
+      {/* Question with number */}
       <div className="flex items-start gap-6">
-        <span className="text-foreground-muted text-lg font-medium mt-0.5">
-          1.
+        <span className="text-foreground-muted text-base font-medium mt-0.5">
+          2.
         </span>
         <div className="flex-1">
-          <h2 className="text-2xl font-semibold text-foreground mb-2">
-            {t("onboarding.toolIdea.title")}
-          </h2>
-          <p className="text-foreground-secondary text-base mb-6">
+          <p className="text-foreground text-base mb-4">
             {t("onboarding.toolIdea.question")}
           </p>
 
@@ -30,14 +38,14 @@ export function ToolIdeaStep({ value, onChange, onContinue }: ToolIdeaStepProps)
             onChange={(e) => onChange(e.target.value)}
             placeholder={t("onboarding.toolIdea.placeholder")}
             rows={6}
-            className="w-full rounded-lg border border-input-border bg-input-bg p-4 text-foreground placeholder:text-foreground-muted outline-none transition-colors focus:border-input-border-focus resize-none"
+            className="w-full rounded-lg border border-border-light bg-white p-4 text-foreground placeholder:text-foreground-muted outline-none transition-colors focus:border-input-border-focus shadow-sm resize-none"
           />
 
-          <div className="mt-8 flex justify-center">
+          <div className="mt-10 flex justify-center">
             <button
               onClick={onContinue}
               disabled={!value.trim()}
-              className="rounded-full bg-primary px-12 py-3 text-base font-medium text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-full bg-[#D9534F] px-16 py-3.5 text-base font-medium text-white transition-colors hover:bg-[#C9302C] shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {t("onboarding.questions.continue")}
             </button>

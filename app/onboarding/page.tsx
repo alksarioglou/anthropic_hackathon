@@ -220,8 +220,8 @@ export default function OnboardingPage() {
         onSave={handleSave}
       />
 
-      <main className="flex flex-1 justify-center px-4 py-6 sm:px-6 lg:px-8">
-        <div className="w-full max-w-[1280px] rounded-xl bg-card-bg min-h-[calc(100vh-160px)] flex flex-col items-center justify-center relative">
+      <main className="flex flex-1 justify-center px-4 py-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-[1320px] rounded-2xl bg-[#ECECEC] min-h-[calc(100vh-120px)] flex flex-col items-center justify-center relative">
           {currentStepId === "start" && (
             <WelcomeStep userName={userName} onStart={handleNext} />
           )}

@@ -12,7 +12,7 @@ interface ReviewStepProps {
 
 function ReviewRow({ label, value, plain }: { label: string; value: string; plain?: boolean }) {
   return (
-    <div className="py-3 border-b border-border-light">
+    <div className="py-3 border-b border-border-light last:border-b-0">
       <p className="text-xs font-medium text-foreground-muted uppercase tracking-wide mb-2">
         {label}
       </p>
@@ -53,11 +53,14 @@ export function ReviewStep({ payload, onSubmit }: ReviewStepProps) {
 
   return (
     <div className="max-w-2xl w-full px-8 overflow-y-auto max-h-[calc(100vh-240px)]">
-      <h2 className="text-2xl font-semibold text-foreground mb-6">
-        {t("onboarding.review.title")}
-      </h2>
+      {/* Info card */}
+      <div className="rounded-lg bg-white border border-border-light p-6 mb-8 shadow-sm">
+        <h2 className="text-xl font-medium text-foreground">
+          {t("onboarding.review.title")}
+        </h2>
+      </div>
 
-      <div className="rounded-lg border border-border bg-background p-6">
+      <div className="rounded-lg border border-border-light bg-white p-6 shadow-sm">
         <ReviewRow
           label={t("onboarding.review.toolIdeaLabel")}
           value={payload.toolDescription || np}
@@ -106,11 +109,11 @@ export function ReviewStep({ payload, onSubmit }: ReviewStepProps) {
         </div>
       </div>
 
-      <div className="mt-8 flex justify-center pb-16">
+      <div className="mt-10 flex justify-center pb-16">
         <button
           onClick={handleSubmit}
           disabled={submitting || !payload.toolDescription.trim()}
-          className="rounded-full bg-primary px-12 py-3 text-base font-medium text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
+          className="rounded-full bg-[#D9534F] px-16 py-3.5 text-base font-medium text-white transition-colors hover:bg-[#C9302C] shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {submitting
             ? t("onboarding.review.submitting")

@@ -79,54 +79,80 @@ export function WorkflowsStep({
 
   return (
     <div className="max-w-2xl w-full px-8">
-      <div className="flex items-start gap-6">
-        <span className="text-foreground-muted text-lg font-medium mt-0.5">
+      {/* Info card */}
+      <div className="rounded-lg bg-white border border-border-light p-6 mb-8 shadow-sm">
+        <h2 className="text-xl font-medium text-foreground mb-3">
+          {t("onboarding.workflows.title")}
+        </h2>
+        <p className="text-foreground-muted text-sm leading-relaxed">
+          {t("onboarding.workflows.description")}
+        </p>
+      </div>
+
+      {/* Question: Key Workflows */}
+      <div className="flex items-start gap-6 mb-8">
+        <span className="text-foreground-muted text-base font-medium mt-0.5">
           5.
         </span>
-        <div className="flex-1 space-y-6">
-          <h2 className="text-2xl font-semibold text-foreground">
-            {t("onboarding.workflows.title")}
-          </h2>
-          <p className="text-foreground-secondary text-sm mb-2">
-            {t("onboarding.workflows.description")}
-          </p>
-
-          <StreamingField
-            label={t("onboarding.workflows.keyWorkflowsLabel")}
+        <div className="flex-1">
+          <label className="text-foreground text-base block mb-3">
+            {t("onboarding.workflows.keyWorkflowsLabel")}
+          </label>
+          <textarea
             value={keyWorkflows}
-            streamingText={streamingFields.keyWorkflows}
-            onChange={(v) => onChange({ keyWorkflows: v })}
+            onChange={(e) => onChange({ keyWorkflows: e.target.value })}
             placeholder={t("onboarding.workflows.keyWorkflowsPlaceholder")}
             rows={3}
+            className="w-full rounded-lg border border-border-light bg-white p-4 text-foreground placeholder:text-foreground-muted outline-none transition-colors focus:border-input-border-focus shadow-sm resize-none"
           />
+        </div>
+      </div>
 
-          <StreamingField
-            label={t("onboarding.workflows.approvalsLabel")}
+      {/* Question: Approvals */}
+      <div className="flex items-start gap-6 mb-8">
+        <span className="text-foreground-muted text-base font-medium mt-0.5">
+          6.
+        </span>
+        <div className="flex-1">
+          <label className="text-foreground text-base block mb-3">
+            {t("onboarding.workflows.approvalsLabel")}
+          </label>
+          <textarea
             value={approvals}
-            streamingText={streamingFields.approvals}
-            onChange={(v) => onChange({ approvals: v })}
+            onChange={(e) => onChange({ approvals: e.target.value })}
             placeholder={t("onboarding.workflows.approvalsPlaceholder")}
             rows={2}
+            className="w-full rounded-lg border border-border-light bg-white p-4 text-foreground placeholder:text-foreground-muted outline-none transition-colors focus:border-input-border-focus shadow-sm resize-none"
           />
+        </div>
+      </div>
 
-          <StreamingField
-            label={t("onboarding.workflows.notificationsLabel")}
+      {/* Question: Notifications */}
+      <div className="flex items-start gap-6">
+        <span className="text-foreground-muted text-base font-medium mt-0.5">
+          7.
+        </span>
+        <div className="flex-1">
+          <label className="text-foreground text-base block mb-3">
+            {t("onboarding.workflows.notificationsLabel")}
+          </label>
+          <textarea
             value={notifications}
-            streamingText={streamingFields.notifications}
-            onChange={(v) => onChange({ notifications: v })}
+            onChange={(e) => onChange({ notifications: e.target.value })}
             placeholder={t("onboarding.workflows.notificationsPlaceholder")}
             rows={2}
+            className="w-full rounded-lg border border-border-light bg-white p-4 text-foreground placeholder:text-foreground-muted outline-none transition-colors focus:border-input-border-focus shadow-sm resize-none"
           />
-
-          <div className="flex justify-center pt-4">
-            <button
-              onClick={onContinue}
-              className="rounded-full bg-primary px-12 py-3 text-base font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
-            >
-              {t("onboarding.questions.continue")}
-            </button>
-          </div>
         </div>
+      </div>
+
+      <div className="flex justify-center pt-10">
+        <button
+          onClick={onContinue}
+          className="rounded-full bg-[#D9534F] px-16 py-3.5 text-base font-medium text-white transition-colors hover:bg-[#C9302C] shadow-sm"
+        >
+          {t("onboarding.questions.continue")}
+        </button>
       </div>
     </div>
   );
