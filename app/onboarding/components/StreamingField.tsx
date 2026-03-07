@@ -88,7 +88,7 @@ export function StreamingField({ label, value, streamingText, onChange, placehol
       : "border-border";
 
   return (
-    <div className={`group rounded-xl border bg-white transition-colors ${borderColor}`}>
+    <div className={`group rounded-lg border bg-input-bg transition-colors ${borderColor}`}>
 
       {/* Header row — matches workspace card header */}
       <div className="px-3 py-2 flex items-center justify-between gap-2 border-b border-input-border">
@@ -97,7 +97,7 @@ export function StreamingField({ label, value, streamingText, onChange, placehol
           {isStreaming && (
             <span className="flex-shrink-0 flex items-center gap-1 text-xs text-accent">
               <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-              AI is writing…
+              Claude is writing…
             </span>
           )}
           {isRefining && (
@@ -194,15 +194,15 @@ export function StreamingField({ label, value, streamingText, onChange, placehol
         <textarea
           value={editText}
           onChange={(e) => setEditText(e.target.value)}
-          rows={rows}
+          rows={Math.max(rows, 10)}
           autoFocus
-          className="w-full px-3 py-2.5 bg-transparent text-sm text-foreground outline-none resize-none font-mono leading-relaxed rounded-b-lg"
+          className="w-full px-3 py-2.5 bg-transparent text-sm text-foreground outline-none resize-y font-mono leading-relaxed rounded-b-lg"
         />
       )}
 
       {/* Refine form — below content, matches workspace pattern */}
       {showRefine && (
-        <div className="px-3 py-2.5 border-t border-input-border space-y-2">
+        <div className="px-3 py-2.5 border-t border-input-border space-y-2 animate-refine-in">
           <textarea
             ref={refineRef}
             value={refinement}

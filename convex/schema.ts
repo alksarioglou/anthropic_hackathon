@@ -57,6 +57,9 @@ export default defineSchema({
     competitive_analysis: v.optional(v.string()),
     cost_estimate: v.optional(v.string()),
     error: v.optional(v.string()),
+    archGraph: v.optional(v.string()),
+    archProse: v.optional(v.string()),
+    archStatusMessages: v.optional(v.array(v.string())),
   }).index("by_project", ["projectId"]),
   techSpecs: defineTable({
     onboardingId: v.id("onboarding"),
