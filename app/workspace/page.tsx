@@ -7,6 +7,7 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { UserButton } from "@clerk/nextjs";
 import ReactMarkdown from "react-markdown";
+import { MaturaLogo } from "@/components/MaturaLogo";
 import type { Project, Artifacts, ArtifactType } from "@/types";
 import { ARTIFACT_LABELS, BUSINESS_ARTIFACTS, TECH_ARTIFACTS } from "@/types";
 import { ArchGraph } from "@/components/ArchGraph";
@@ -111,24 +112,24 @@ function ArtifactCard({
   const borderColor = editMode
     ? "border-amber-500/50"
     : showRefine
-      ? "border-indigo-500/50"
-      : "border-zinc-800";
+      ? "border-primary/50"
+      : "border-border";
 
   return (
     <div
-      className={`group relative rounded-xl border bg-zinc-900 transition-colors animate-card-in ${borderColor}`}
+      className={`group relative rounded-xl border bg-background transition-colors animate-card-in ${borderColor}`}
       style={{ animationDelay: `${index * 80}ms` }}
     >
 
       {/* Card header */}
-      <div className="px-4 py-3 flex items-center justify-between gap-2 border-b border-zinc-800">
+      <div className="px-4 py-3 flex items-center justify-between gap-2 border-b border-border">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="text-sm font-medium text-zinc-200 truncate">
+          <span className="text-sm font-medium text-foreground truncate">
             {ARTIFACT_LABELS[type]}
           </span>
           {isStreaming && (
-            <span className="flex-shrink-0 flex items-center gap-1.5 text-xs text-indigo-400 animate-fade-in">
-              <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
+            <span className="flex-shrink-0 flex items-center gap-1.5 text-xs text-primary animate-fade-in">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
               AI is writing…
             </span>
           )}
@@ -138,21 +139,21 @@ function ArtifactCard({
           <div className="flex items-center gap-1.5 flex-shrink-0">
             <button
               onClick={() => { setEditText(content!); setEditMode(true); setShowRefine(false); }}
-              className="text-xs text-zinc-500 hover:text-zinc-300 border border-zinc-700 hover:border-zinc-500 px-2 py-0.5 rounded-md transition-colors"
+              className="text-xs text-foreground-muted hover:text-foreground border border-border hover:border-foreground-muted px-2 py-0.5 rounded-md transition-colors"
             >
               Edit
             </button>
             <button
               onClick={() => setExpanded((v) => !v)}
-              className="text-xs text-zinc-600 hover:text-zinc-300 border border-zinc-700 px-2 py-0.5 rounded-md transition-colors"
+              className="text-xs text-foreground-muted hover:text-foreground border border-border px-2 py-0.5 rounded-md transition-colors"
             >
-              {expanded ? "↑" : "↓"}
+              {expanded ? "\u2191" : "\u2193"}
             </button>
             {onFocus && (
               <button
                 onClick={onFocus}
                 title="Open full view"
-                className="flex items-center gap-1 text-xs text-zinc-400 hover:text-zinc-100 border border-zinc-700 hover:border-zinc-400 hover:bg-zinc-800 px-2 py-0.5 rounded-md transition-colors"
+                className="flex items-center gap-1 text-xs text-foreground-secondary hover:text-foreground border border-border hover:border-foreground-muted px-2 py-0.5 rounded-md transition-colors"
               >
                 <ExpandIcon className="w-3 h-3" />
                 <span>Focus</span>
@@ -165,13 +166,13 @@ function ArtifactCard({
           <div className="flex items-center gap-1.5 flex-shrink-0">
             <button
               onClick={() => setEditMode(false)}
-              className="text-xs text-zinc-500 hover:text-zinc-300 px-2 py-0.5 rounded-md transition-colors"
+              className="text-xs text-foreground-muted hover:text-foreground px-2 py-0.5 rounded-md transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={() => { onDirectSave(type, editText); setEditMode(false); }}
-              className="text-xs font-medium text-amber-400 border border-amber-500/40 bg-amber-500/10 hover:border-amber-500/70 px-2 py-0.5 rounded-md transition-colors"
+              className="text-xs font-medium text-amber-600 border border-amber-500/40 bg-amber-500/10 hover:border-amber-500/70 px-2 py-0.5 rounded-md transition-colors"
             >
               Save
             </button>
@@ -186,7 +187,7 @@ function ArtifactCard({
             {[100, 88, 72, 52].map((w, i) => (
               <div
                 key={i}
-                className="h-1.5 rounded-full bg-zinc-800 animate-pulse"
+                className="h-1.5 rounded-full bg-background-tertiary animate-pulse"
                 style={{ width: `${w}%`, animationDelay: `${i * 0.12}s` }}
               />
             ))}
@@ -197,9 +198,7 @@ function ArtifactCard({
       {/* Read / streaming view */}
       {!editMode && displayText && (
         <>
-          {/* Content area — wand floats inside here */}
           <div className="relative">
-            {/* Magic wand — hovers over the text content */}
             {(isDone || isStreaming) && !editMode && !isRefining && (
               <button
                 onClick={() => { setShowRefine((v) => !v); setRefineError(null); }}
@@ -209,8 +208,8 @@ function ArtifactCard({
                   w-7 h-7 rounded-full border flex items-center justify-center
                   shadow-lg transition-all duration-150
                   ${showRefine
-                    ? "opacity-100 scale-100 border-indigo-500 bg-indigo-600 text-white"
-                    : "opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 border-zinc-600 bg-zinc-800/90 text-zinc-300 hover:border-indigo-500 hover:bg-indigo-600 hover:text-white"
+                    ? "opacity-100 scale-100 border-primary bg-primary text-primary-foreground"
+                    : "opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 border-border bg-background text-foreground-muted hover:border-primary hover:bg-primary hover:text-primary-foreground"
                   }
                 `}
               >
@@ -223,12 +222,12 @@ function ArtifactCard({
               className={`px-4 py-3 overflow-y-auto transition-all ${expanded ? "max-h-[32rem]" : "max-h-44"}`}
             >
               {isStreaming ? (
-                <pre className="text-xs text-zinc-400 whitespace-pre-wrap font-mono leading-relaxed">
+                <pre className="text-xs text-foreground-secondary whitespace-pre-wrap font-mono leading-relaxed">
                   {displayText}
-                  <span className="inline-block w-0.5 h-3 bg-indigo-400 animate-pulse align-middle ml-0.5" />
+                  <span className="inline-block w-0.5 h-3 bg-primary animate-pulse align-middle ml-0.5" />
                 </pre>
               ) : (
-                <div className="md-content">
+                <div className="prose-light text-xs text-foreground-secondary leading-relaxed whitespace-pre-wrap">
                   <ReactMarkdown>{displayText}</ReactMarkdown>
                 </div>
               )}
@@ -239,7 +238,7 @@ function ArtifactCard({
             <div className="px-4 pb-2">
               <button
                 onClick={() => setExpanded(true)}
-                className="text-xs text-zinc-600 hover:text-zinc-400 underline underline-offset-2"
+                className="text-xs text-foreground-muted hover:text-foreground-secondary underline underline-offset-2"
               >
                 Show more
               </button>
@@ -248,44 +247,44 @@ function ArtifactCard({
         </>
       )}
 
-      {/* Direct edit textarea — raw markdown */}
+      {/* Direct edit textarea */}
       {editMode && (
         <textarea
           value={editText}
           onChange={(e) => setEditText(e.target.value)}
-          className="w-full px-4 py-3 bg-zinc-950 text-xs text-zinc-300 font-mono leading-relaxed resize-none focus:outline-none rounded-b-xl"
+          className="w-full px-4 py-3 bg-background-secondary text-xs text-foreground font-mono leading-relaxed resize-none focus:outline-none rounded-b-xl"
           rows={14}
         />
       )}
 
       {/* Inline AI refinement form */}
       {(isDone || isStreaming) && showRefine && (
-        <div className="px-4 py-3 border-t border-zinc-800 bg-zinc-950 space-y-2 rounded-b-xl">
+        <div className="px-4 py-3 border-t border-border bg-card-bg space-y-2 rounded-b-xl">
           <textarea
             ref={refineRef}
             value={refinement}
             onChange={(e) => setRefinement(e.target.value)}
             onKeyDown={handleRefineKeyDown}
-            placeholder={`What would you like to change? (⌘↵ to apply)`}
+            placeholder={`What would you like to change? (\u2318\u21B5 to apply)`}
             rows={3}
-            className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-zinc-200 text-xs placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500 resize-none"
+            className="w-full px-3 py-2 rounded-lg bg-background border border-input-border text-foreground text-xs placeholder:text-foreground-muted focus:outline-none focus:border-primary resize-none"
           />
-          {refineError && <p className="text-xs text-red-400">{refineError}</p>}
+          {refineError && <p className="text-xs text-error">{refineError}</p>}
           <div className="flex items-center justify-between gap-2">
-            <p className="text-xs text-zinc-600">Propagates to related artifacts automatically.</p>
+            <p className="text-xs text-foreground-muted">Propagates to related artifacts automatically.</p>
             <div className="flex gap-2">
               <button
                 onClick={() => { setShowRefine(false); setRefinement(""); setRefineError(null); }}
-                className="text-xs text-zinc-500 hover:text-zinc-300 px-3 py-1.5 rounded-lg transition-colors"
+                className="text-xs text-foreground-muted hover:text-foreground px-3 py-1.5 rounded-lg transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={submitRefinement}
                 disabled={isRefining || !refinement.trim()}
-                className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-800 disabled:text-zinc-600 text-white transition-colors"
+                className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover disabled:bg-background-tertiary disabled:text-foreground-muted text-primary-foreground transition-colors"
               >
-                {isRefining ? "Applying…" : "Apply"}
+                {isRefining ? "Applying\u2026" : "Apply"}
               </button>
             </div>
           </div>
@@ -351,16 +350,16 @@ function ArtifactModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/70 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className={`relative w-full max-w-3xl max-h-[90vh] flex flex-col rounded-2xl border bg-zinc-900 shadow-2xl overflow-hidden transition-colors animate-modal-in ${editMode ? "border-amber-500/50" : showRefine ? "border-indigo-500/50" : "border-zinc-700"}`}>
+      <div className={`relative w-full max-w-3xl max-h-[90vh] flex flex-col rounded-2xl border bg-background shadow-2xl overflow-hidden transition-colors animate-modal-in ${editMode ? "border-amber-500/50" : showRefine ? "border-primary/50" : "border-border"}`}>
 
         {/* Modal header */}
-        <div className="px-5 py-3.5 flex items-center justify-between gap-2 border-b border-zinc-800 flex-shrink-0">
+        <div className="px-5 py-3.5 flex items-center justify-between gap-2 border-b border-border flex-shrink-0">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-zinc-200">{ARTIFACT_LABELS[type]}</span>
-            {isStreaming && <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />}
+            <span className="text-sm font-semibold text-foreground">{ARTIFACT_LABELS[type]}</span>
+            {isStreaming && <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />}
           </div>
           <div className="flex items-center gap-1.5">
             {!editMode && !isStreaming && content !== undefined && (
@@ -368,13 +367,13 @@ function ArtifactModal({
                 <button
                   onClick={() => { setShowRefine((v) => !v); setRefineError(null); }}
                   title="Refine with AI"
-                  className={`p-1.5 rounded-lg border transition-colors ${showRefine ? "border-indigo-500 bg-indigo-600 text-white" : "border-zinc-700 text-zinc-400 hover:border-indigo-500 hover:bg-indigo-600 hover:text-white"}`}
+                  className={`p-1.5 rounded-lg border transition-colors ${showRefine ? "border-primary bg-primary text-primary-foreground" : "border-border text-foreground-muted hover:border-primary hover:bg-primary hover:text-primary-foreground"}`}
                 >
                   <SparklesIcon className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => { setEditText(content!); setEditMode(true); setShowRefine(false); }}
-                  className="text-xs text-zinc-500 hover:text-zinc-300 border border-zinc-700 hover:border-zinc-500 px-2 py-1 rounded-lg transition-colors"
+                  className="text-xs text-foreground-muted hover:text-foreground border border-border hover:border-foreground-muted px-2 py-1 rounded-lg transition-colors"
                 >
                   Edit
                 </button>
@@ -382,16 +381,16 @@ function ArtifactModal({
             )}
             {editMode && (
               <>
-                <button onClick={() => setEditMode(false)} className="text-xs text-zinc-500 hover:text-zinc-300 px-2 py-1 rounded-lg transition-colors">Cancel</button>
+                <button onClick={() => setEditMode(false)} className="text-xs text-foreground-muted hover:text-foreground px-2 py-1 rounded-lg transition-colors">Cancel</button>
                 <button
                   onClick={() => { onDirectSave(type, editText); setEditMode(false); }}
-                  className="text-xs font-medium text-amber-400 border border-amber-500/40 bg-amber-500/10 hover:border-amber-500/70 px-2 py-1 rounded-lg transition-colors"
+                  className="text-xs font-medium text-amber-600 border border-amber-500/40 bg-amber-500/10 hover:border-amber-500/70 px-2 py-1 rounded-lg transition-colors"
                 >
                   Save
                 </button>
               </>
             )}
-            <button onClick={onClose} title="Close (Esc)" className="ml-1 p-1.5 rounded-lg border border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:border-zinc-500 transition-colors">
+            <button onClick={onClose} title="Close (Esc)" className="ml-1 p-1.5 rounded-lg border border-border text-foreground-muted hover:text-foreground hover:border-foreground-muted transition-colors">
               <CollapseIcon className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -403,17 +402,17 @@ function ArtifactModal({
             <textarea
               value={editText}
               onChange={(e) => setEditText(e.target.value)}
-              className="w-full h-full min-h-[60vh] px-5 py-4 bg-zinc-950 text-sm text-zinc-300 font-mono leading-relaxed resize-none focus:outline-none"
+              className="w-full h-full min-h-[60vh] px-5 py-4 bg-background-secondary text-sm text-foreground font-mono leading-relaxed resize-none focus:outline-none"
             />
           ) : (
             <div className="px-5 py-4">
               {isStreaming ? (
-                <pre className="text-sm text-zinc-400 whitespace-pre-wrap font-mono leading-relaxed">
+                <pre className="text-sm text-foreground-secondary whitespace-pre-wrap font-mono leading-relaxed">
                   {displayText}
-                  <span className="inline-block w-0.5 h-4 bg-indigo-400 animate-pulse align-middle ml-0.5" />
+                  <span className="inline-block w-0.5 h-4 bg-primary animate-pulse align-middle ml-0.5" />
                 </pre>
               ) : (
-                <div className="md-content !text-sm [&_.md-content]:text-sm">
+                <div className="text-sm text-foreground-secondary leading-relaxed whitespace-pre-wrap">
                   <ReactMarkdown>{displayText}</ReactMarkdown>
                 </div>
               )}
@@ -423,27 +422,27 @@ function ArtifactModal({
 
         {/* Refinement form */}
         {!editMode && showRefine && (
-          <div className="px-5 py-3.5 border-t border-zinc-800 bg-zinc-950 space-y-2 flex-shrink-0">
+          <div className="px-5 py-3.5 border-t border-border bg-card-bg space-y-2 flex-shrink-0">
             <textarea
               ref={refineRef}
               value={refinement}
               onChange={(e) => setRefinement(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); submitRefinement(); } }}
-              placeholder="What would you like to change? (⌘↵ to apply)"
+              placeholder="What would you like to change? (\u2318\u21B5 to apply)"
               rows={3}
-              className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-zinc-200 text-xs placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500 resize-none"
+              className="w-full px-3 py-2 rounded-lg bg-background border border-input-border text-foreground text-xs placeholder:text-foreground-muted focus:outline-none focus:border-primary resize-none"
             />
-            {refineError && <p className="text-xs text-red-400">{refineError}</p>}
+            {refineError && <p className="text-xs text-error">{refineError}</p>}
             <div className="flex items-center justify-between gap-2">
-              <p className="text-xs text-zinc-600">Propagates to related artifacts automatically.</p>
+              <p className="text-xs text-foreground-muted">Propagates to related artifacts automatically.</p>
               <div className="flex gap-2">
-                <button onClick={() => { setShowRefine(false); setRefinement(""); setRefineError(null); }} className="text-xs text-zinc-500 hover:text-zinc-300 px-3 py-1.5 rounded-lg transition-colors">Cancel</button>
+                <button onClick={() => { setShowRefine(false); setRefinement(""); setRefineError(null); }} className="text-xs text-foreground-muted hover:text-foreground px-3 py-1.5 rounded-lg transition-colors">Cancel</button>
                 <button
                   onClick={submitRefinement}
                   disabled={isRefining || !refinement.trim()}
-                  className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-800 disabled:text-zinc-600 text-white transition-colors"
+                  className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover disabled:bg-background-tertiary disabled:text-foreground-muted text-primary-foreground transition-colors"
                 >
-                  {isRefining ? "Applying…" : "Apply"}
+                  {isRefining ? "Applying\u2026" : "Apply"}
                 </button>
               </div>
             </div>
@@ -459,13 +458,14 @@ function ArtifactModal({
 function QuestionRow({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-xs font-medium text-zinc-600 mb-0.5">{label}</p>
-      <p className="text-xs text-zinc-400 whitespace-pre-line leading-relaxed">{value}</p>
+      <p className="text-xs font-medium text-foreground-muted mb-0.5">{label}</p>
+      <p className="text-xs text-foreground-secondary whitespace-pre-line leading-relaxed">{value}</p>
     </div>
   );
 }
 
 function IdeaPanel({ project, onUpdateIdea }: { project: Project; onUpdateIdea: (desc: string) => void }) {
+  const [expanded, setExpanded] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editText, setEditText] = useState("");
   const [showRefine, setShowRefine] = useState(false);
@@ -514,91 +514,115 @@ function IdeaPanel({ project, onUpdateIdea }: { project: Project; onUpdateIdea: 
   }
 
   return (
-    <div className={`mb-6 rounded-xl bg-zinc-900 border animate-fade-in overflow-hidden transition-colors ${editMode ? "border-amber-500/50" : showRefine ? "border-indigo-500/50" : "border-zinc-800"}`}>
-      <div className="px-4 py-2.5 flex items-center justify-between border-b border-zinc-800">
-        <p className="text-xs font-medium text-zinc-500">Project idea</p>
-        {!editMode && !isRefining && (
-          <div className="flex items-center gap-1.5">
-            <button
-              onClick={() => { setShowRefine((v) => !v); }}
-              title="Refine with AI"
-              className={`p-1.5 rounded-lg border transition-colors ${showRefine ? "border-indigo-500 bg-indigo-600 text-white" : "border-zinc-700 text-zinc-400 hover:border-indigo-500 hover:bg-indigo-600 hover:text-white"}`}
-            >
-              <SparklesIcon className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => { setEditText(description); setEditMode(true); setShowRefine(false); }}
-              className="text-xs text-zinc-500 hover:text-zinc-300 border border-zinc-700 hover:border-zinc-500 px-2 py-0.5 rounded-md transition-colors"
-            >
-              Edit
-            </button>
-          </div>
-        )}
-        {editMode && (
-          <div className="flex gap-1.5">
-            <button onClick={() => setEditMode(false)} className="text-xs text-zinc-500 hover:text-zinc-300 px-2 py-0.5 rounded-md transition-colors">Cancel</button>
-            <button
-              onClick={() => { onUpdateIdea(editText); setEditMode(false); }}
-              className="text-xs font-medium text-amber-400 border border-amber-500/40 bg-amber-500/10 hover:border-amber-500/70 px-2 py-0.5 rounded-md transition-colors"
-            >
-              Save & Regenerate
-            </button>
-          </div>
-        )}
-        {isRefining && (
-          <span className="text-xs text-indigo-400 flex items-center gap-1.5 animate-fade-in">
-            <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
-            Refining…
-          </span>
-        )}
+    <div className={`mb-6 rounded-xl bg-background border animate-fade-in overflow-hidden transition-colors ${editMode ? "border-amber-500/50" : showRefine ? "border-primary/50" : "border-border"}`}>
+      {/* Collapsible header */}
+      <div
+        className="px-4 py-2.5 flex items-center justify-between cursor-pointer select-none"
+        onClick={() => { if (!editMode && !showRefine) setExpanded((v) => !v); }}
+      >
+        <div className="flex items-center gap-2 min-w-0">
+          <svg
+            className={`w-3.5 h-3.5 text-foreground-muted transition-transform duration-200 shrink-0 ${expanded ? "rotate-90" : ""}`}
+            viewBox="0 0 16 16" fill="currentColor"
+          >
+            <path d="M6 3l5 5-5 5V3z" />
+          </svg>
+          <p className="text-xs font-medium text-foreground-muted">Project idea</p>
+          {!expanded && (
+            <p className="text-xs text-foreground-secondary truncate ml-1 max-w-md">{description}</p>
+          )}
+        </div>
+        <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+          {!editMode && !isRefining && (
+            <>
+              <button
+                onClick={() => { setShowRefine((v) => !v); setExpanded(true); }}
+                title="Refine with AI"
+                className={`p-1.5 rounded-lg border transition-colors ${showRefine ? "border-primary bg-primary text-primary-foreground" : "border-border text-foreground-muted hover:border-primary hover:bg-primary hover:text-primary-foreground"}`}
+              >
+                <SparklesIcon className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={() => { setEditText(description); setEditMode(true); setShowRefine(false); setExpanded(true); }}
+                className="text-xs text-foreground-muted hover:text-foreground border border-border hover:border-foreground-muted px-2 py-0.5 rounded-md transition-colors"
+              >
+                Edit
+              </button>
+            </>
+          )}
+          {editMode && (
+            <>
+              <button onClick={() => setEditMode(false)} className="text-xs text-foreground-muted hover:text-foreground px-2 py-0.5 rounded-md transition-colors">Cancel</button>
+              <button
+                onClick={() => { onUpdateIdea(editText); setEditMode(false); }}
+                className="text-xs font-medium text-amber-600 border border-amber-500/40 bg-amber-500/10 hover:border-amber-500/70 px-2 py-0.5 rounded-md transition-colors"
+              >
+                Save & Regenerate
+              </button>
+            </>
+          )}
+          {isRefining && (
+            <span className="text-xs text-primary flex items-center gap-1.5 animate-fade-in">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+              Refining...
+            </span>
+          )}
+        </div>
       </div>
 
-      {editMode ? (
-        <textarea
-          value={editText}
-          onChange={(e) => setEditText(e.target.value)}
-          rows={4}
-          autoFocus
-          className="w-full px-4 py-3 bg-zinc-950 text-sm text-zinc-300 font-mono leading-relaxed resize-none focus:outline-none"
-        />
-      ) : (
-        <div className="px-4 py-3">
-          <p className="text-sm text-zinc-300 whitespace-pre-line max-h-24 overflow-y-auto leading-relaxed">{description}</p>
-        </div>
-      )}
+      {/* Collapsible body */}
+      {(expanded || editMode || showRefine) && (
+        <>
+          <div className="border-t border-border" />
 
-      {!editMode && q && (q.userRoles || q.accessControl || q.keyWorkflows || q.approvals || q.notifications) && (
-        <div className="px-4 pb-3 pt-3 border-t border-zinc-800/60 space-y-2">
-          {q.userRoles && <QuestionRow label="Users & Roles" value={q.userRoles} />}
-          {q.accessControl && <QuestionRow label="Access Control" value={q.accessControl} />}
-          {q.keyWorkflows && <QuestionRow label="Key Workflows" value={q.keyWorkflows} />}
-          {q.approvals && <QuestionRow label="Approvals" value={q.approvals} />}
-          {q.notifications && <QuestionRow label="Notifications" value={q.notifications} />}
-        </div>
-      )}
+          {editMode ? (
+            <textarea
+              value={editText}
+              onChange={(e) => setEditText(e.target.value)}
+              rows={4}
+              autoFocus
+              className="w-full px-4 py-3 bg-background-secondary text-sm text-foreground font-mono leading-relaxed resize-none focus:outline-none"
+            />
+          ) : (
+            <div className="px-4 py-3">
+              <p className="text-sm text-foreground-secondary whitespace-pre-line max-h-32 overflow-y-auto leading-relaxed">{description}</p>
+            </div>
+          )}
 
-      {showRefine && (
-        <div className="px-4 py-3 border-t border-zinc-800 bg-zinc-950 space-y-2">
-          <textarea
-            ref={refineRef}
-            value={refinement}
-            onChange={(e) => setRefinement(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); applyRefinement(); } }}
-            placeholder="How should the idea be refined? (⌘↵ to apply)"
-            rows={2}
-            className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-zinc-200 text-xs placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500 resize-none"
-          />
-          <div className="flex justify-end gap-2">
-            <button onClick={() => { setShowRefine(false); setRefinement(""); }} className="text-xs text-zinc-500 hover:text-zinc-300 px-3 py-1.5 rounded-lg transition-colors">Cancel</button>
-            <button
-              onClick={applyRefinement}
-              disabled={!refinement.trim()}
-              className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-800 disabled:text-zinc-600 text-white transition-colors"
-            >
-              Refine & Regenerate
-            </button>
-          </div>
-        </div>
+          {!editMode && q && (q.userRoles || q.accessControl || q.keyWorkflows || q.approvals || q.notifications) && (
+            <div className="px-4 pb-3 pt-3 border-t border-border-light space-y-2">
+              {q.userRoles && <QuestionRow label="Users & Roles" value={q.userRoles} />}
+              {q.accessControl && <QuestionRow label="Access Control" value={q.accessControl} />}
+              {q.keyWorkflows && <QuestionRow label="Key Workflows" value={q.keyWorkflows} />}
+              {q.approvals && <QuestionRow label="Approvals" value={q.approvals} />}
+              {q.notifications && <QuestionRow label="Notifications" value={q.notifications} />}
+            </div>
+          )}
+
+          {showRefine && (
+            <div className="px-4 py-3 border-t border-border bg-card-bg space-y-2">
+              <textarea
+                ref={refineRef}
+                value={refinement}
+                onChange={(e) => setRefinement(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); applyRefinement(); } }}
+                placeholder="How should the idea be refined? (\u2318\u21B5 to apply)"
+                rows={2}
+                className="w-full px-3 py-2 rounded-lg bg-background border border-input-border text-foreground text-xs placeholder:text-foreground-muted focus:outline-none focus:border-primary resize-none"
+              />
+              <div className="flex justify-end gap-2">
+                <button onClick={() => { setShowRefine(false); setRefinement(""); }} className="text-xs text-foreground-muted hover:text-foreground px-3 py-1.5 rounded-lg transition-colors">Cancel</button>
+                <button
+                  onClick={applyRefinement}
+                  disabled={!refinement.trim()}
+                  className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover disabled:bg-background-tertiary disabled:text-foreground-muted text-primary-foreground transition-colors"
+                >
+                  Refine & Regenerate
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
@@ -613,18 +637,18 @@ function ViewToggle({
   active: "business" | "technical" | "architecture";
   onChange: (v: "business" | "technical" | "architecture") => void;
 }) {
-  const labels: Record<string, string> = { business: "Business", technical: "Technical", architecture: "Architecture" };
+  const labels: Record<string, string> = { business: "Business Mode", technical: "Dev Mode", architecture: "Architecture" };
   return (
-    <div className="flex items-center justify-center mb-6">
-      <div className="relative flex items-center bg-zinc-900 border border-zinc-800 rounded-xl p-1 gap-1">
+    <div className="flex items-center justify-center">
+      <div className="relative flex items-center bg-background border border-border rounded-full p-1 gap-1">
         {(["business", "technical", "architecture"] as const).map((v) => (
           <button
             key={v}
             onClick={() => onChange(v)}
-            className={`relative px-5 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
+            className={`relative px-5 py-2 rounded-full text-sm font-medium transition-all duration-150 ${
               active === v
-                ? "bg-zinc-700 text-zinc-100 shadow-sm"
-                : "text-zinc-500 hover:text-zinc-300"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-foreground-secondary hover:text-foreground"
             }`}
           >
             {labels[v]}
@@ -962,114 +986,117 @@ function WorkspaceContent() {
   const artifactTypes = activeView === "business" ? BUSINESS_ARTIFACTS : TECH_ARTIFACTS;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col">
-      {/* Header */}
-      <header className="border-b border-zinc-800 px-6 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <button onClick={() => router.push("/")}>
-            <img src="/logo-light.svg" alt="matura" className="h-6" />
-          </button>
-          <div>
-            <p className="text-sm font-medium text-zinc-100 leading-tight">
-              {project?.name ?? "Loading…"}
-            </p>
-            <p className="text-xs text-zinc-500 leading-tight">
-              {project?.mode === "external" ? "External" : "Internal"} mode
-              {isGenerating && <span className="ml-2 text-indigo-400">· Generating…</span>}
-            </p>
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Header — matches home/onboarding nav */}
+      <nav className="border-b border-border bg-nav-bg">
+        <div className="flex items-center justify-between h-14 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto w-full">
+          <div className="flex items-center gap-4">
+            <MaturaLogo className="h-7" />
+            <div className="hidden sm:block h-5 w-px bg-border" />
+            <div className="hidden sm:block">
+              <p className="text-sm font-medium text-foreground leading-tight">
+                {project?.name ?? "Loading\u2026"}
+              </p>
+              <p className="text-xs text-foreground-muted leading-tight">
+                {project?.mode === "external" ? "External" : "Internal"} mode
+                {isGenerating && <span className="ml-2 text-primary">\u00B7 Generating\u2026</span>}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            {/* Mode toggle in header like reference */}
+            <ViewToggle active={activeView} onChange={handleViewChange} />
+            <button
+              onClick={() => router.push("/home")}
+              className="rounded-full border border-border px-4 py-1.5 text-xs font-medium text-foreground-secondary hover:text-foreground hover:border-foreground-muted transition-colors"
+            >
+              Home
+            </button>
+            <UserButton />
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => router.push("/home")}
-            className="rounded-full border border-zinc-700 px-4 py-1.5 text-xs font-medium text-zinc-400 hover:text-zinc-100 hover:border-zinc-500 transition-colors"
-          >
-            Home
-          </button>
-          <UserButton />
-        </div>
-      </header>
+      </nav>
 
       {/* Refinement bar */}
       {refinementCount > 0 && (
-        <div className="px-6 py-2 bg-emerald-500/5 border-b border-emerald-500/20 text-xs text-emerald-400 flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+        <div className="px-6 py-2 bg-success/5 border-b border-success/20 text-xs text-success flex items-center gap-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-success" />
           {refinementCount} refinement{refinementCount !== 1 ? "s" : ""} applied — artifacts kept in sync
         </div>
       )}
 
-      <main className="flex-1 px-6 py-6 max-w-5xl mx-auto w-full">
-        {error && (
-          <div className="flex flex-col items-center justify-center h-64 gap-3 text-center">
-            <p className="text-sm text-red-400">Generation failed</p>
-            <p className="text-xs text-zinc-500">
-              {error.includes("rate_limit")
-                ? "API rate limit reached — please wait a moment and try again."
-                : error.includes("API key") || error.includes("auth")
-                  ? "Invalid API key. Check ANTHROPIC_API_KEY in .env.local."
-                  : "Something went wrong. Please try again."}
-            </p>
-            <button onClick={() => router.push("/")} className="text-xs text-indigo-400 underline">
-              Start over
-            </button>
-          </div>
-        )}
+      {/* Main content — card wrapper like onboarding */}
+      <main className="flex flex-1 px-4 py-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-6xl mx-auto rounded-2xl bg-card-bg min-h-[calc(100vh-100px)] px-8 sm:px-12 lg:px-16 py-8">
+          {error && (
+            <div className="flex flex-col items-center justify-center h-64 gap-3 text-center">
+              <p className="text-sm text-error">Generation failed</p>
+              <p className="text-xs text-foreground-muted">
+                {error.includes("rate_limit")
+                  ? "API rate limit reached — please wait a moment and try again."
+                  : error.includes("API key") || error.includes("auth")
+                    ? "Invalid API key. Check ANTHROPIC_API_KEY in .env.local."
+                    : "Something went wrong. Please try again."}
+              </p>
+              <button onClick={() => router.push("/home")} className="text-xs text-accent underline">
+                Back to home
+              </button>
+            </div>
+          )}
 
-        {!error && project && (
-          <>
-            <IdeaPanel project={project} onUpdateIdea={handleUpdateIdea} />
+          {!error && project && (
+            <>
+              <IdeaPanel project={project} onUpdateIdea={handleUpdateIdea} />
 
-            {/* View toggle — in body */}
-            <ViewToggle active={activeView} onChange={handleViewChange} />
-
-            {/* Architecture view */}
-            {activeView === "architecture" && (
-              <div className="flex gap-6 h-[70vh] rounded-xl overflow-hidden border border-zinc-800">
-                <div className="flex-[3] min-w-0">
-                  <ArchGraph graph={archGraph} />
+              {/* Architecture view */}
+              {activeView === "architecture" && (
+                <div className="flex gap-6 h-[70vh] rounded-xl overflow-hidden border border-border">
+                  <div className="flex-[3] min-w-0">
+                    <ArchGraph graph={archGraph} />
+                  </div>
+                  <div className="flex-[2] overflow-y-auto p-5 bg-background space-y-5">
+                    {archGraph && <TechStackLegend graph={archGraph} />}
+                    <ProsePanel
+                      statusMessages={archStatusMessages}
+                      prose={archProse}
+                      isStreaming={archPhase === "streaming"}
+                    />
+                  </div>
                 </div>
-                <div className="flex-[2] overflow-y-auto p-5 bg-zinc-900 space-y-5">
-                  {archGraph && <TechStackLegend graph={archGraph} />}
-                  <ProsePanel
-                    statusMessages={archStatusMessages}
-                    prose={archProse}
-                    isStreaming={archPhase === "streaming"}
-                  />
+              )}
+
+              {/* Artifacts grid (business / technical) */}
+              {activeView !== "architecture" && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {artifactTypes.map((type, i) => (
+                    <ArtifactCard
+                      key={type}
+                      type={type}
+                      index={i}
+                      content={artifacts[type]}
+                      streamingText={streamingContent[type]}
+                      onStartRefinement={handleStartRefinement}
+                      onDirectSave={handleDirectSave}
+                      onFocus={() => setFocusedType(type)}
+                    />
+                  ))}
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Artifacts grid (business / technical) */}
-            {activeView !== "architecture" && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {artifactTypes.map((type, i) => (
-                  <ArtifactCard
-                    key={type}
-                    type={type}
-                    index={i}
-                    content={artifacts[type]}
-                    streamingText={streamingContent[type]}
-                    onStartRefinement={handleStartRefinement}
-                    onDirectSave={handleDirectSave}
-                    onFocus={() => setFocusedType(type)}
-                  />
-                ))}
-              </div>
-            )}
-
-            {/* Focus modal */}
-            {focusedType && (
-              <ArtifactModal
-                type={focusedType}
-                content={artifacts[focusedType]}
-                streamingText={streamingContent[focusedType]}
-                onStartRefinement={handleStartRefinement}
-                onDirectSave={handleDirectSave}
-                onClose={() => setFocusedType(null)}
-              />
-            )}
-          </>
-        )}
+              {/* Focus modal */}
+              {focusedType && (
+                <ArtifactModal
+                  type={focusedType}
+                  content={artifacts[focusedType]}
+                  streamingText={streamingContent[focusedType]}
+                  onStartRefinement={handleStartRefinement}
+                  onDirectSave={handleDirectSave}
+                  onClose={() => setFocusedType(null)}
+                />
+              )}
+            </>
+          )}
+        </div>
       </main>
     </div>
   );
@@ -1077,7 +1104,7 @@ function WorkspaceContent() {
 
 export default function WorkspacePage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-zinc-950" />}>
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
       <WorkspaceContent />
     </Suspense>
   );
