@@ -170,6 +170,15 @@ export default function OnboardingPage() {
     if (payload.approvals) ideaParts.push(`Approvals: ${payload.approvals}`);
     if (payload.notifications) ideaParts.push(`Notifications: ${payload.notifications}`);
 
+    // 2b. Append uploaded file contents as additional context
+    const filesWithContent = payload.uploadedFiles.filter((f) => f.content);
+    if (filesWithContent.length > 0) {
+      ideaParts.push("--- Uploaded Documents ---");
+      for (const file of filesWithContent) {
+        ideaParts.push(`### ${file.name}\n${file.content}`);
+      }
+    }
+
     // 3. Create project record in Convex
     const projectId = await createProject({
       onboardingId: obId,

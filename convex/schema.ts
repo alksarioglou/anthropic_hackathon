@@ -24,19 +24,23 @@ export default defineSchema({
         name: v.string(),
         size: v.number(),
         type: v.string(),
+        content: v.optional(v.string()),
       })
     ),
     status: v.union(v.literal("draft"), v.literal("submitted")),
   }),
   projects: defineTable({
     onboardingId: v.id("onboarding"),
+    userId: v.optional(v.string()),
     name: v.string(),
     idea: v.string(),
     description: v.optional(v.string()),
     mode: v.union(v.literal("internal"), v.literal("external")),
     dashboardStyle: v.union(v.literal("business"), v.literal("technical")),
     createdAt: v.number(),
-  }).index("by_onboarding", ["onboardingId"]),
+  })
+    .index("by_onboarding", ["onboardingId"])
+    .index("by_user", ["userId"]),
   artifacts: defineTable({
     projectId: v.id("projects"),
     status: v.union(

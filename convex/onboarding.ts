@@ -16,6 +16,7 @@ export const save = mutation({
         name: v.string(),
         size: v.number(),
         type: v.string(),
+        content: v.optional(v.string()),
       })
     ),
     status: v.union(v.literal("draft"), v.literal("submitted")),

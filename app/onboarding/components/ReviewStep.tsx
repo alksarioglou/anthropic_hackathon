@@ -99,7 +99,14 @@ export function ReviewStep({ payload, onSubmit }: ReviewStepProps) {
           ) : (
             <ul className="text-sm text-foreground space-y-1">
               {payload.uploadedFiles.map((file, i) => (
-                <li key={i}>{file.name}</li>
+                <li key={i}>
+                  {file.name}
+                  {file.content ? (
+                    <span className="ml-2 text-xs text-success">Content parsed</span>
+                  ) : (
+                    <span className="ml-2 text-xs text-foreground-muted">Metadata only</span>
+                  )}
+                </li>
               ))}
             </ul>
           )}
