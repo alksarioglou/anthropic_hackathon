@@ -8,8 +8,10 @@
  * @module
  */
 
+import type * as artifacts from "../artifacts.js";
 import type * as documents from "../documents.js";
 import type * as onboarding from "../onboarding.js";
+import type * as projects from "../projects.js";
 import type * as seed from "../seed.js";
 import type * as techSpecs from "../techSpecs.js";
 
@@ -20,8 +22,10 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  artifacts: typeof artifacts;
   documents: typeof documents;
   onboarding: typeof onboarding;
+  projects: typeof projects;
   seed: typeof seed;
   techSpecs: typeof techSpecs;
 }>;

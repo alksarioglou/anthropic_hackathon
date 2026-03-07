@@ -1,7 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState, useEffect, useRef, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 import { UserButton } from "@clerk/nextjs";
 import ReactMarkdown from "react-markdown";
 import type { Project, Artifacts, ArtifactType } from "@/types";
@@ -10,24 +13,6 @@ import { ArchGraph } from "@/components/ArchGraph";
 import { ProsePanel } from "@/components/ProsePanel";
 import { TechStackLegend } from "@/components/TechStackLegend";
 import type { ArchitectureGraph } from "@/types/architecture";
-
-// ─── helpers ────────────────────────────────────────────────────────────────
-
-function loadProject(): Project | null {
-  try {
-    const raw = sessionStorage.getItem("sdlc_project");
-    return raw ? JSON.parse(raw) : null;
-  } catch { return null; }
-}
-function loadArtifacts(): Artifacts | null {
-  try {
-    const raw = sessionStorage.getItem("sdlc_artifacts");
-    return raw ? JSON.parse(raw) : null;
-  } catch { return null; }
-}
-function saveArtifacts(a: Artifacts) {
-  sessionStorage.setItem("sdlc_artifacts", JSON.stringify(a));
-}
 
 // ─── icons ───────────────────────────────────────────────────────────────────
 
@@ -652,9 +637,22 @@ function ViewToggle({
 
 // ─── main page ───────────────────────────────────────────────────────────────
 
-export default function WorkspacePage() {
+function WorkspaceContent() {
   const router = useRouter();
-  const [project, setProject] = useState<Project | null>(null);
+  const searchParams = useSearchParams();
+  const projectId = searchParams.get("projectId") as Id<"projects"> | null;
+
+  // Convex queries & mutations
+  const convexProject = useQuery(api.projects.get, projectId ? { id: projectId } : "skip");
+  const convexOnboarding = useQuery(
+    api.onboarding.get,
+    convexProject?.onboardingId ? { id: convexProject.onboardingId } : "skip"
+  );
+  const convexArtifacts = useQuery(api.artifacts.getByProject, projectId ? { projectId } : "skip");
+  const saveArtifactsMut = useMutation(api.artifacts.saveCompleted);
+  const updateArtifactMut = useMutation(api.artifacts.updateArtifact);
+  const updateProjectMut = useMutation(api.projects.update);
+
   const [artifacts, setArtifacts] = useState<Artifacts>({});
   const [streamingContent, setStreamingContent] = useState<Partial<Record<ArtifactType, string>>>({});
   const [isGenerating, setIsGenerating] = useState(false);
@@ -674,33 +672,74 @@ export default function WorkspacePage() {
   // Refs for accurate accumulation without stale closures
   const streamAccumRef = useRef<Partial<Record<ArtifactType, string>>>({});
   const artifactsRef = useRef<Artifacts>({});
-  const projectRef = useRef<Project | null>(null);
   const hasGenerated = useRef(false);
+  const hasLoadedFromDb = useRef(false);
 
-  // Keep artifactsRef and projectRef in sync
-  useEffect(() => { artifactsRef.current = artifacts; }, [artifacts]);
+  // Build a project-like object from Convex data
+  const project = convexProject ? {
+    id: convexProject._id,
+    name: convexProject.name,
+    idea: convexProject.idea,
+    description: convexProject.description,
+    questionnaire: convexOnboarding ? {
+      userRoles: convexOnboarding.userRoles || undefined,
+      accessControl: convexOnboarding.accessControl || undefined,
+      keyWorkflows: convexOnboarding.keyWorkflows || undefined,
+      approvals: convexOnboarding.approvals || undefined,
+      notifications: convexOnboarding.notifications || undefined,
+    } : undefined,
+    mode: convexProject.mode,
+    dashboardStyle: convexProject.dashboardStyle,
+    createdAt: convexProject.createdAt,
+  } : null;
+
+  const projectRef = useRef(project);
   useEffect(() => { projectRef.current = project; }, [project]);
+  useEffect(() => { artifactsRef.current = artifacts; }, [artifacts]);
 
+  // Redirect if no project ID in URL
   useEffect(() => {
-    const proj = loadProject();
-    if (!proj) { router.replace("/"); return; }
-    setProject(proj);
-    projectRef.current = proj;
-    setActiveView(proj.dashboardStyle);
+    if (!projectId) {
+      router.replace("/");
+    }
+  }, [projectId, router]);
 
-    const cached = loadArtifacts();
-    if (cached && Object.keys(cached).length > 0) {
-      setArtifacts(cached);
-      artifactsRef.current = cached;
-      return;
+  // Load artifacts from Convex when available, and auto-generate if empty
+  useEffect(() => {
+    if (!convexProject || hasLoadedFromDb.current) return;
+
+    setActiveView(convexProject.dashboardStyle);
+
+    if (convexArtifacts && convexArtifacts.status === "completed") {
+      // Load cached artifacts from database
+      const loaded: Artifacts = {};
+      const keys: ArtifactType[] = ["vision", "requirements", "architecture", "frameworks", "backlog", "tests", "competitive_analysis", "cost_estimate"];
+      for (const key of keys) {
+        const val = convexArtifacts[key as keyof typeof convexArtifacts];
+        if (typeof val === "string") {
+          loaded[key] = val;
+        }
+      }
+      if (Object.keys(loaded).length > 0) {
+        setArtifacts(loaded);
+        artifactsRef.current = loaded;
+        hasLoadedFromDb.current = true;
+        return;
+      }
     }
 
-    if (hasGenerated.current) return;
-    hasGenerated.current = true;
-    runGeneration(proj);
-  }, [router]); // eslint-disable-line react-hooks/exhaustive-deps
+    // convexArtifacts === null means query returned no record → generate
+    // convexArtifacts === undefined means query is still loading → wait
+    if (convexArtifacts === undefined) return;
 
-  async function runGeneration(proj: Project) {
+    hasLoadedFromDb.current = true;
+    if (!hasGenerated.current) {
+      hasGenerated.current = true;
+      runGeneration(convexProject.idea, convexProject.mode);
+    }
+  }, [convexProject, convexArtifacts]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function runGeneration(idea: string, mode: string) {
     streamAccumRef.current = {};
     setIsGenerating(true);
     setError(null);
@@ -709,7 +748,7 @@ export default function WorkspacePage() {
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idea: proj.idea, mode: proj.mode }),
+        body: JSON.stringify({ idea, mode }),
       });
       if (!res.ok || !res.body) throw new Error("Generation failed");
       const reader = res.body.getReader();
@@ -738,8 +777,11 @@ export default function WorkspacePage() {
           }
         }
       }
-      saveArtifacts(collected);
       artifactsRef.current = collected;
+      // Persist to Convex
+      if (projectId) {
+        await saveArtifactsMut({ projectId, ...collected });
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
@@ -749,7 +791,7 @@ export default function WorkspacePage() {
 
   function handleUpdateIdea(newDescription: string) {
     const proj = projectRef.current;
-    if (!proj) return;
+    if (!proj || !projectId) return;
     const q = proj.questionnaire;
     const ideaParts = [newDescription];
     if (q?.userRoles) ideaParts.push(`Users & roles: ${q.userRoles}`);
@@ -757,16 +799,14 @@ export default function WorkspacePage() {
     if (q?.keyWorkflows) ideaParts.push(`Key workflows: ${q.keyWorkflows}`);
     if (q?.approvals) ideaParts.push(`Approvals: ${q.approvals}`);
     if (q?.notifications) ideaParts.push(`Notifications: ${q.notifications}`);
-    const updated: Project = { ...proj, description: newDescription, idea: ideaParts.join("\n\n") };
-    setProject(updated);
-    projectRef.current = updated;
-    sessionStorage.setItem("sdlc_project", JSON.stringify(updated));
+    const newIdea = ideaParts.join("\n\n");
+    // Update project in Convex
+    updateProjectMut({ id: projectId, description: newDescription, idea: newIdea });
     setArtifacts({});
     artifactsRef.current = {};
     setStreamingContent({});
     streamAccumRef.current = {};
-    sessionStorage.removeItem("sdlc_artifacts");
-    runGeneration(updated);
+    runGeneration(newIdea, proj.mode);
   }
 
   // Streaming refinement — handles NDJSON from /api/feedback
@@ -807,7 +847,6 @@ export default function WorkspacePage() {
         }
 
         if (parsed.event === "impact") {
-          // Pre-fill streaming state with existing content so cards show something while updating
           const affected = parsed.affectedArtifacts as ArtifactType[];
           setStreamingContent((prev) => {
             const next = { ...prev };
@@ -828,7 +867,6 @@ export default function WorkspacePage() {
         if (parsed.event === "artifact_done") {
           const t = parsed.artifactType as ArtifactType;
           const final = parsed.content as string;
-          // Move from streaming → settled
           setArtifacts((prev) => {
             const merged = { ...prev, [t]: final };
             artifactsRef.current = merged;
@@ -839,24 +877,30 @@ export default function WorkspacePage() {
             delete next[t];
             return next;
           });
+          // Persist individual artifact update to Convex
+          if (projectId) {
+            updateArtifactMut({ projectId, key: t, value: final });
+          }
         }
 
         if (parsed.event === "complete") {
-          saveArtifacts(artifactsRef.current);
           setRefinementCount((c) => c + 1);
         }
       }
     }
-  }, []);
+  }, [projectId, updateArtifactMut]);
 
   const handleDirectSave = useCallback((type: ArtifactType, text: string) => {
     setArtifacts((prev) => {
       const merged = { ...prev, [type]: text };
-      saveArtifacts(merged);
       artifactsRef.current = merged;
       return merged;
     });
-  }, []);
+    // Persist to Convex
+    if (projectId) {
+      updateArtifactMut({ projectId, key: type, value: text });
+    }
+  }, [projectId, updateArtifactMut]);
 
   function parseSSEBuffer(buffer: string) {
     const parsed: Array<{ type: string; data: Record<string, unknown> }> = [];
@@ -1020,5 +1064,13 @@ export default function WorkspacePage() {
         )}
       </main>
     </div>
+  );
+}
+
+export default function WorkspacePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-zinc-950" />}>
+      <WorkspaceContent />
+    </Suspense>
   );
 }

@@ -28,6 +28,32 @@ export default defineSchema({
     ),
     status: v.union(v.literal("draft"), v.literal("submitted")),
   }),
+  projects: defineTable({
+    onboardingId: v.id("onboarding"),
+    name: v.string(),
+    idea: v.string(),
+    description: v.optional(v.string()),
+    mode: v.union(v.literal("internal"), v.literal("external")),
+    dashboardStyle: v.union(v.literal("business"), v.literal("technical")),
+    createdAt: v.number(),
+  }).index("by_onboarding", ["onboardingId"]),
+  artifacts: defineTable({
+    projectId: v.id("projects"),
+    status: v.union(
+      v.literal("generating"),
+      v.literal("completed"),
+      v.literal("error")
+    ),
+    vision: v.optional(v.string()),
+    requirements: v.optional(v.string()),
+    architecture: v.optional(v.string()),
+    frameworks: v.optional(v.string()),
+    backlog: v.optional(v.string()),
+    tests: v.optional(v.string()),
+    competitive_analysis: v.optional(v.string()),
+    cost_estimate: v.optional(v.string()),
+    error: v.optional(v.string()),
+  }).index("by_project", ["projectId"]),
   techSpecs: defineTable({
     onboardingId: v.id("onboarding"),
     status: v.union(

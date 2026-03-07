@@ -32,19 +32,26 @@ import { SlaReleasePanel } from "./components/SlaReleasePanel";
 function DashboardContent() {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
+  const projectId = searchParams.get("projectId") as Id<"projects"> | null;
   const onboardingId = searchParams.get("onboardingId") as Id<"onboarding"> | null;
 
+  // Load from projects table (primary)
+  const project = useQuery(api.projects.get, projectId ? { id: projectId } : "skip");
+  const projectArtifacts = useQuery(api.artifacts.getByProject, projectId ? { projectId } : "skip");
+
+  // Fallback: load from onboarding/techSpecs tables (legacy)
+  const resolvedOnboardingId = project?.onboardingId ?? onboardingId;
   const onboarding = useQuery(
     api.onboarding.get,
-    onboardingId ? { id: onboardingId } : "skip"
+    resolvedOnboardingId ? { id: resolvedOnboardingId } : "skip"
   );
   const techSpecs = useQuery(
     api.techSpecs.getByOnboarding,
-    onboardingId ? { onboardingId } : "skip"
+    resolvedOnboardingId ? { onboardingId: resolvedOnboardingId } : "skip"
   );
   const generateTechSpecs = useAction(api.techSpecs.generate);
 
-  const projectMode = onboarding?.projectMode ?? ("external" as "internal" | "external");
+  const projectMode = project?.mode ?? onboarding?.projectMode ?? ("external" as "internal" | "external");
   const data = sampleData;
 
   return (
@@ -69,8 +76,39 @@ function DashboardContent() {
 
       <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="space-y-6">
-          {/* ─── Generate Tech Specs ─── */}
-          {onboardingId && (
+          {/* ─── Generated Artifacts (from workspace) ─── */}
+          {projectArtifacts?.status === "completed" && (
+            <section className="rounded-lg border border-border bg-background p-6">
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold text-foreground">Generated Artifacts</h3>
+                <p className="text-sm text-foreground-secondary mt-1">
+                  Artifacts generated from the workspace pipeline.
+                </p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {([
+                  ["Vision", projectArtifacts.vision],
+                  ["Requirements", projectArtifacts.requirements],
+                  ["Architecture", projectArtifacts.architecture],
+                  ["Frameworks", projectArtifacts.frameworks],
+                  ["Tests", projectArtifacts.tests],
+                  ["Backlog", projectArtifacts.backlog],
+                  ["Competitive Analysis", projectArtifacts.competitive_analysis],
+                  ["Cost Estimate", projectArtifacts.cost_estimate],
+                ] as const).map(([title, content]) =>
+                  content ? (
+                    <div key={title} className="rounded-lg border border-border p-4 max-h-80 overflow-y-auto">
+                      <h4 className="text-sm font-semibold text-foreground mb-2">{title}</h4>
+                      <p className="text-xs text-foreground-secondary whitespace-pre-wrap">{content}</p>
+                    </div>
+                  ) : null
+                )}
+              </div>
+            </section>
+          )}
+
+          {/* ─── Generate Tech Specs (legacy / fallback) ─── */}
+          {resolvedOnboardingId && !projectArtifacts && (
             <section className="rounded-lg border border-border bg-background p-6">
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -84,7 +122,7 @@ function DashboardContent() {
                   </p>
                 </div>
                 <button
-                  onClick={() => generateTechSpecs({ onboardingId })}
+                  onClick={() => generateTechSpecs({ onboardingId: resolvedOnboardingId })}
                   disabled={techSpecs?.status === "generating"}
                   className="rounded-full bg-accent px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
