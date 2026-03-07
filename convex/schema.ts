@@ -58,7 +58,6 @@ export default defineSchema({
     cost_estimate: v.optional(v.string()),
     error: v.optional(v.string()),
     archGraph: v.optional(v.string()),
-    archGraphJson: v.optional(v.string()),
     archProse: v.optional(v.string()),
     archStatusMessages: v.optional(v.array(v.string())),
   }).index("by_project", ["projectId"]),

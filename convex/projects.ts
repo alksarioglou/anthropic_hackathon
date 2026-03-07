@@ -25,7 +25,7 @@ export const get = query({
   args: { id: v.string() },
   handler: async (ctx, args) => {
     try {
-      return await ctx.db.get(args.id as unknown as Parameters<typeof ctx.db.get<"projects">>[0]);
+      return await ctx.db.get(args.id as Parameters<typeof ctx.db.get>[0]);
     } catch {
       return null;
     }

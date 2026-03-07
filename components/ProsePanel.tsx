@@ -15,10 +15,14 @@ export function ProsePanel({ statusMessages, prose, isStreaming }: Props) {
       <StatusLog messages={statusMessages} />
 
       {prose && (
-        <div className="prose prose-sm prose-slate max-w-none">
-          <ReactMarkdown>{prose}</ReactMarkdown>
-          {isStreaming && (
-            <span className="inline-block w-0.5 h-4 bg-primary ml-0.5 animate-pulse" />
+        <div className="md-content text-sm text-foreground-secondary">
+          {isStreaming ? (
+            <pre className="whitespace-pre-wrap font-sans leading-relaxed">
+              {prose}
+              <span className="inline-block w-0.5 h-4 bg-primary ml-0.5 animate-pulse align-text-bottom" />
+            </pre>
+          ) : (
+            <ReactMarkdown>{prose}</ReactMarkdown>
           )}
         </div>
       )}

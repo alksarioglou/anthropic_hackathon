@@ -21,7 +21,7 @@ const NODE_HEIGHT = 90;
 
 function applyDagreLayout(nodes: Node[], edges: Edge[]): Node[] {
   const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: "TB", ranksep: 120, nodesep: 80, marginx: 50, marginy: 50 });
+  g.setGraph({ rankdir: "TB", ranksep: 90, nodesep: 60, marginx: 40, marginy: 40 });
 
   nodes.forEach((node) => g.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT }));
   edges.forEach((edge) => g.setEdge(edge.source, edge.target));
@@ -62,13 +62,11 @@ function ArchGraphInner({ graph }: { graph: ArchitectureGraph | null }) {
     source: e.source,
     target: e.target,
     label: e.label,
-    animated: false,
+    animated: e.animated ?? false,
     type: "smoothstep",
-    style: { stroke: "#94a3b8", strokeWidth: 1.5 },
-    labelStyle: { fontSize: 10, fill: "#64748b", fontWeight: 500 },
-    labelBgStyle: { fill: "#f8fafc", fillOpacity: 0.9 },
-    labelBgPadding: [6, 3] as [number, number],
-    labelBgBorderRadius: 4,
+    style: { stroke: "#94a3b8" },
+    labelStyle: { fontSize: 11, fill: "#64748b" },
+    labelBgStyle: { fill: "#f8fafc", fillOpacity: 0.85 },
   })) : [];
 
   const nodes: Node[] = graph ? applyDagreLayout(
@@ -111,7 +109,7 @@ function ArchGraphInner({ graph }: { graph: ArchitectureGraph | null }) {
         colorMode="light"
         fitView
         fitViewOptions={{ padding: 0.2 }}
-        proOptions={{ hideAttribution: true }}
+        attributionPosition="bottom-right"
         style={{ background: "#f5f5f5" }}
       >
         <Background variant={BackgroundVariant.Dots} gap={16} size={1} color="#d4d4d4" />

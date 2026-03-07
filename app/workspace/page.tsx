@@ -37,9 +37,9 @@ function WorkspaceContent() {
   const convexArtifacts = useQuery(api.artifacts.getByProject, projectId ? { projectId } : "skip");
   const saveArtifactsMut = useMutation(api.artifacts.saveCompleted);
   const updateArtifactMut = useMutation(api.artifacts.updateArtifact);
+  const saveArchMut = useMutation(api.artifacts.saveArch);
   const updateProjectMut = useMutation(api.projects.update);
   const saveOnboardingMut = useMutation(api.onboarding.save);
-  const saveArchitectureMut = useMutation(api.artifacts.saveArchitecture);
 
   const [artifacts, setArtifacts] = useState<Artifacts>({});
   const [streamingContent, setStreamingContent] = useState<Partial<Record<ArtifactType, string>>>({});
@@ -60,8 +60,8 @@ function WorkspaceContent() {
   const [archStatusMessages, setArchStatusMessages] = useState<string[]>([]);
   const archGenerated = useRef(false);
   const activeViewRef = useRef<"business" | "technical" | "architecture">("business");
-  const archGraphAccumRef = useRef<ArchitectureGraph | null>(null);
-  const archProseAccumRef = useRef("");
+  const archGraphRef = useRef<ArchitectureGraph | null>(null);
+  const archProseRef = useRef("");
   const archStatusRef = useRef<string[]>([]);
 
   // Refs for accurate accumulation without stale closures
@@ -123,11 +123,10 @@ function WorkspaceContent() {
       setArtifacts(loaded);
       artifactsRef.current = loaded;
       hasLoadedFromDb.current = true;
-      // Restore saved architecture if available (try archGraphJson first, fall back to archGraph)
-      const archJson = convexArtifacts.archGraphJson ?? convexArtifacts.archGraph;
-      if (archJson) {
+      // Restore saved architecture if available
+      if (convexArtifacts.archGraph) {
         try {
-          setArchGraph(JSON.parse(archJson) as ArchitectureGraph);
+          setArchGraph(JSON.parse(convexArtifacts.archGraph) as ArchitectureGraph);
           setArchPhase("done");
           archGenerated.current = true;
         } catch { /* ignore parse errors */ }
@@ -344,8 +343,6 @@ function WorkspaceContent() {
     setArchStatusMessages([]);
     setArchGraph(null);
     setArchProse("");
-    archGraphAccumRef.current = null;
-    archProseAccumRef.current = "";
     try {
       const res = await fetch("/api/generate-architecture", {
         method: "POST",
@@ -369,30 +366,31 @@ function WorkspaceContent() {
             setArchStatusMessages((prev) => [...prev, msg]);
           }
           if (event.type === "architecture") {
-            archGraphAccumRef.current = event.data as unknown as ArchitectureGraph;
-            setArchGraph(archGraphAccumRef.current);
+            const g = event.data as unknown as ArchitectureGraph;
+            archGraphRef.current = g;
+            setArchGraph(g);
             setArchPhase("graph-ready");
           }
           if (event.type === "prose") {
-            archProseAccumRef.current += event.data.chunk as string;
+            archProseRef.current += event.data.chunk as string;
             setArchPhase("streaming");
-            setArchProse(archProseAccumRef.current);
+            setArchProse((prev) => prev + (event.data.chunk as string));
           }
-          if (event.type === "done") {
-            setArchPhase("done");
-            if (projectId && archGraphAccumRef.current) {
-              saveArchitectureMut({
-                projectId,
-                archGraphJson: JSON.stringify(archGraphAccumRef.current),
-                archProse: archProseAccumRef.current,
-              }).catch(() => {});
-            }
-          }
-          if (event.type === "error") { setArchPhase("error"); }
+          if (event.type === "done") setArchPhase("done");
+          if (event.type === "error") setArchPhase("error");
         }
       }
-    } catch { setArchPhase("error"); }
-  }, [projectId, saveArchitectureMut]);
+    } catch { setArchPhase("error"); return; }
+    // Save arch to DB after full generation
+    if (projectId && archGraphRef.current) {
+      saveArchMut({
+        projectId,
+        archGraph: JSON.stringify(archGraphRef.current),
+        archProse: archProseRef.current,
+        archStatusMessages: archStatusRef.current,
+      }).catch(() => {});
+    }
+  }, [projectId, saveArchMut]);
 
   async function handleGlobalRefine(refinement: string) {
     setIsGlobalRefining(true);
@@ -405,21 +403,9 @@ function WorkspaceContent() {
 
   function handleViewChange(v: "business" | "technical" | "architecture") {
     setActiveView(v);
-    if (v === "architecture" && !archGenerated.current && projectRef.current) {
-      // If Convex artifacts haven't loaded yet, wait — don't regenerate
-      if (convexArtifacts === undefined) return;
+    // Only generate if DB load is complete (prevents racing with saved arch restore)
+    if (v === "architecture" && !archGenerated.current && hasLoadedFromDb.current && projectRef.current) {
       archGenerated.current = true;
-      // If architecture is already persisted, restore it
-      if (convexArtifacts?.archGraphJson) {
-        try {
-          const graph = JSON.parse(convexArtifacts.archGraphJson) as ArchitectureGraph;
-          setArchGraph(graph);
-          setArchProse(convexArtifacts.archProse ?? "");
-          setArchPhase("done");
-          console.log("[arch-trigger] restored from Convex!");
-          return;
-        } catch { /* fall through to generate */ }
-      }
       startArchGeneration(projectRef.current.idea);
     }
   }
