@@ -34,11 +34,10 @@ cd anthropic_hackathon
 pnpm install
 
 # 3. Configure environment variables
-#    Create a .env.local file with:
-
-# Required variables in .env.local:
+cp .env.template .env.local
+# Then add your Anthropic API key in .env.local:
 #   ANTHROPIC_API_KEY=sk-ant-...
-#   NEXT_PUBLIC_CONVEX_URL=https://<your-deployment>.convex.cloud
+# All other variables (Convex, Clerk) are pre-configured in the template.
 
 # 4. Start Convex backend (in one terminal)
 npx convex dev
@@ -57,7 +56,6 @@ app/
   home/page.tsx         # Dashboard — list all project flows
   onboarding/page.tsx   # Guided onboarding wizard (Stage 1)
   workspace/page.tsx    # Artifact generation & refinement (Stage 2 + 3)
-  dashboard/page.tsx    # Business/Technical dashboard view
   api/
     generate/           # SDLC artifact generation pipeline
     feedback/           # Retro-feedback alignment loop
@@ -100,7 +98,6 @@ npx convex deploy # Deploy Convex functions to production
 4. **Workspace** — the system generates all SDLC artifacts (Vision, Requirements, Architecture, Frameworks, Backlog, Tests, Cost Estimate, Competitive Analysis) using Claude
 5. **Refine** — click any artifact card, add a refinement instruction, and the feedback loop updates all affected artifacts automatically
 6. **Architecture view** — an agentic tool-use flow queries the internal knowledge base and produces an interactive architecture diagram
-7. **Dashboard** — view generated artifacts in a structured business or technical dashboard
 
 ## Team
 

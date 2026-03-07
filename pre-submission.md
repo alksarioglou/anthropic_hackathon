@@ -77,9 +77,11 @@ matura uses **7 specialized AI agents** powered by Claude, each responsible for 
 # Install dependencies
 pnpm install
 
-# Set environment variables in .env.local:
+# Configure environment variables
+cp .env.template .env.local
+# Then add your Anthropic API key in .env.local:
 #   ANTHROPIC_API_KEY=sk-ant-...
-#   NEXT_PUBLIC_CONVEX_URL=https://<your-deployment>.convex.cloud
+# All other variables (Convex, Clerk) are pre-configured in the template.
 
 # Terminal 1: Start Convex backend
 npx convex dev
