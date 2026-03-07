@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { createEmptyPayload, type OnboardingPayload } from "@/lib/onboarding-payload";
+import type { Project } from "@/types";
 import { OnboardingNav } from "./components/OnboardingNav";
 import { WelcomeStep } from "./components/WelcomeStep";
 import { ProjectModeStep } from "./components/ProjectModeStep";
@@ -25,6 +26,9 @@ export type StepId =
   | "files"
   | "review";
 
+// Fields that get AI pre-filled after the tool idea step
+export type PrefillField = "userRoles" | "accessControl" | "keyWorkflows" | "approvals" | "notifications";
+
 const STEP_ORDER: StepId[] = [
   "start",
   "projectMode",
@@ -42,6 +46,12 @@ export default function OnboardingPage() {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<StepId>>(new Set());
   const [payload, setPayload] = useState<OnboardingPayload>(createEmptyPayload());
+
+  // AI prefill state — tracks streaming text per field while AI generates
+  const [prefillStreaming, setPrefillStreaming] = useState<Partial<Record<PrefillField, string>>>({});
+  const [prefillDone, setPrefillDone] = useState<Set<PrefillField>>(new Set());
+  const prefillAccumRef = useRef<Partial<Record<PrefillField, string>>>({});
+  const isPrefilling = useRef(false);
 
   const currentStepId = STEP_ORDER[currentStepIndex];
 
@@ -73,6 +83,75 @@ export default function OnboardingPage() {
     }
   }
 
+  // Called when user clicks Continue on the ToolIdea step.
+  // Moves to the next step immediately, then streams AI pre-fills in the background.
+  async function handleToolIdeaContinue() {
+    goToStep(currentStepIndex + 1);
+
+    // Don't re-run if already prefilling or already done
+    if (isPrefilling.current || prefillDone.size > 0) return;
+    isPrefilling.current = true;
+
+    try {
+      const res = await fetch("/api/onboarding-prefill", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          toolDescription: payload.toolDescription,
+          projectMode: payload.projectMode,
+        }),
+      });
+      if (!res.ok || !res.body) return;
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          const parsed = JSON.parse(line) as {
+            event?: string;
+            field?: PrefillField;
+            chunk?: string;
+            done?: boolean;
+          };
+
+          if (parsed.field && parsed.chunk !== undefined) {
+            // Accumulate streaming text
+            prefillAccumRef.current[parsed.field] =
+              (prefillAccumRef.current[parsed.field] ?? "") + parsed.chunk;
+            const text = prefillAccumRef.current[parsed.field]!;
+            setPrefillStreaming((prev) => ({ ...prev, [parsed.field!]: text }));
+          }
+
+          if (parsed.field && parsed.done) {
+            const field = parsed.field;
+            const finalText = prefillAccumRef.current[field] ?? "";
+            // Commit to payload and mark as done
+            updatePayload({ [field]: finalText });
+            setPrefillDone((prev) => new Set(prev).add(field));
+            setPrefillStreaming((prev) => {
+              const next = { ...prev };
+              delete next[field];
+              return next;
+            });
+          }
+        }
+      }
+    } catch {
+      // Silently fail — user can fill in manually
+    } finally {
+      isPrefilling.current = false;
+    }
+  }
+
   async function handleSave() {
     const id = await saveOnboarding({
       id: onboardingId ?? undefined,
@@ -88,7 +167,28 @@ export default function OnboardingPage() {
       ...payload,
       status: "submitted",
     });
-    router.push(`/dashboard?onboardingId=${id}`);
+
+    // Build a rich idea string from all onboarding fields for the generation agents
+    const ideaParts = [payload.toolDescription];
+    if (payload.userRoles) ideaParts.push(`Users & roles: ${payload.userRoles}`);
+    if (payload.accessControl) ideaParts.push(`Access control: ${payload.accessControl}`);
+    if (payload.keyWorkflows) ideaParts.push(`Key workflows: ${payload.keyWorkflows}`);
+    if (payload.approvals) ideaParts.push(`Approvals: ${payload.approvals}`);
+    if (payload.notifications) ideaParts.push(`Notifications: ${payload.notifications}`);
+
+    // Save in workspace format
+    const project: Project = {
+      id: id,
+      name: payload.toolDescription.split(" ").slice(0, 6).join(" "),
+      idea: ideaParts.join("\n\n"),
+      mode: payload.projectMode,
+      dashboardStyle: "technical",
+      createdAt: Date.now(),
+    };
+    sessionStorage.setItem("sdlc_project", JSON.stringify(project));
+    sessionStorage.removeItem("sdlc_artifacts");
+
+    router.push("/workspace");
   }
 
   function canProceed(): boolean {
@@ -138,7 +238,7 @@ export default function OnboardingPage() {
             <ToolIdeaStep
               value={payload.toolDescription}
               onChange={(v) => updatePayload({ toolDescription: v })}
-              onContinue={handleNext}
+              onContinue={handleToolIdeaContinue}
             />
           )}
 
@@ -148,6 +248,7 @@ export default function OnboardingPage() {
               accessControl={payload.accessControl}
               onChange={updatePayload}
               onContinue={handleNext}
+              streamingFields={prefillStreaming}
             />
           )}
 
@@ -158,6 +259,7 @@ export default function OnboardingPage() {
               notifications={payload.notifications}
               onChange={updatePayload}
               onContinue={handleNext}
+              streamingFields={prefillStreaming}
             />
           )}
 

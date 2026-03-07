@@ -1,7 +1,8 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { useQuery, useMutation, useAction } from "convex/react";
+import { useQuery, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { useTranslation } from "@/lib/i18n";
@@ -26,7 +27,7 @@ import { UserResearchPanel } from "./components/UserResearchPanel";
 import { DesignUxPanel } from "./components/DesignUxPanel";
 import { SlaReleasePanel } from "./components/SlaReleasePanel";
 
-export default function DashboardPage() {
+function DashboardContent() {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
   const onboardingId = searchParams.get("onboardingId") as Id<"onboarding"> | null;
@@ -177,5 +178,13 @@ export default function DashboardPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
+      <DashboardContent />
+    </Suspense>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
 import { useTranslation } from "@/lib/i18n";
 import type { OnboardingPayload } from "@/lib/onboarding-payload";
 
@@ -9,13 +10,27 @@ interface ReviewStepProps {
   onSubmit: () => void;
 }
 
-function ReviewRow({ label, value }: { label: string; value: string }) {
+function ReviewRow({ label, value, plain }: { label: string; value: string; plain?: boolean }) {
   return (
     <div className="py-3 border-b border-border-light">
-      <p className="text-xs font-medium text-foreground-muted uppercase tracking-wide mb-1">
+      <p className="text-xs font-medium text-foreground-muted uppercase tracking-wide mb-2">
         {label}
       </p>
-      <p className="text-sm text-foreground whitespace-pre-wrap">{value}</p>
+      {plain ? (
+        <p className="text-sm text-foreground">{value}</p>
+      ) : (
+        <div className="prose prose-sm max-w-none text-foreground
+          [&>p]:mb-1.5 [&>p]:text-sm [&>p]:text-foreground
+          [&>ul]:list-disc [&>ul]:pl-4 [&>ul]:mb-1.5 [&>ul>li]:text-sm [&>ul>li]:text-foreground
+          [&>ol]:list-decimal [&>ol]:pl-4 [&>ol]:mb-1.5 [&>ol>li]:text-sm [&>ol>li]:text-foreground
+          [&>h1]:text-sm [&>h1]:font-semibold [&>h1]:text-foreground [&>h1]:mb-1
+          [&>h2]:text-sm [&>h2]:font-semibold [&>h2]:text-foreground [&>h2]:mb-1
+          [&>h3]:text-sm [&>h3]:font-medium [&>h3]:text-foreground [&>h3]:mb-1
+          [&>strong]:font-semibold [&>strong]:text-foreground
+          [&>blockquote]:border-l-2 [&>blockquote]:border-border [&>blockquote]:pl-3 [&>blockquote]:text-foreground-secondary">
+          <ReactMarkdown>{value}</ReactMarkdown>
+        </div>
+      )}
     </div>
   );
 }
@@ -46,10 +61,12 @@ export function ReviewStep({ payload, onSubmit }: ReviewStepProps) {
         <ReviewRow
           label={t("onboarding.review.toolIdeaLabel")}
           value={payload.toolDescription || np}
+          plain
         />
         <ReviewRow
           label={t("onboarding.review.projectModeLabel")}
           value={MODE_LABELS[payload.projectMode]}
+          plain
         />
         <ReviewRow
           label={t("onboarding.review.userRolesLabel")}
