@@ -1,33 +1,19 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState, useEffect, useRef, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
+import { UserButton } from "@clerk/nextjs";
 import ReactMarkdown from "react-markdown";
+import { MaturaLogo } from "@/components/MaturaLogo";
 import type { Project, Artifacts, ArtifactType } from "@/types";
 import { ARTIFACT_LABELS, BUSINESS_ARTIFACTS, TECH_ARTIFACTS } from "@/types";
 import { ArchGraph } from "@/components/ArchGraph";
 import { ProsePanel } from "@/components/ProsePanel";
 import { TechStackLegend } from "@/components/TechStackLegend";
-import { MaturaLogo } from "@/components/MaturaLogo";
 import type { ArchitectureGraph } from "@/types/architecture";
-
-// ─── helpers ────────────────────────────────────────────────────────────────
-
-function loadProject(): Project | null {
-  try {
-    const raw = sessionStorage.getItem("sdlc_project");
-    return raw ? JSON.parse(raw) : null;
-  } catch { return null; }
-}
-function loadArtifacts(): Artifacts | null {
-  try {
-    const raw = sessionStorage.getItem("sdlc_artifacts");
-    return raw ? JSON.parse(raw) : null;
-  } catch { return null; }
-}
-function saveArtifacts(a: Artifacts) {
-  sessionStorage.setItem("sdlc_artifacts", JSON.stringify(a));
-}
 
 // ─── icons ───────────────────────────────────────────────────────────────────
 
@@ -123,9 +109,9 @@ function ArtifactCard({
   }
 
   const borderColor = editMode
-    ? "border-amber-400"
+    ? "border-amber-500/50"
     : showRefine
-      ? "border-primary"
+      ? "border-primary/50"
       : "border-border";
 
   return (
@@ -133,7 +119,6 @@ function ArtifactCard({
       className={`group relative rounded-xl border bg-card-bg transition-colors animate-card-in ${borderColor}`}
       style={{ animationDelay: `${index * 80}ms` }}
     >
-
       {/* Card header */}
       <div className="px-4 py-3 flex items-center justify-between gap-2 border-b border-border">
         <div className="flex items-center gap-2 min-w-0">
@@ -143,7 +128,7 @@ function ArtifactCard({
           {isStreaming && (
             <span className="flex-shrink-0 flex items-center gap-1.5 text-xs text-primary animate-fade-in">
               <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              Claude is writing…
+              AI is writing…
             </span>
           )}
         </div>
@@ -166,7 +151,7 @@ function ArtifactCard({
               <button
                 onClick={onFocus}
                 title="Open full view"
-                className="flex items-center gap-1 text-xs text-foreground-secondary hover:text-foreground border border-border hover:border-foreground-muted hover:bg-background-secondary px-2 py-0.5 rounded-md transition-colors"
+                className="flex items-center gap-1 text-xs text-foreground-secondary hover:text-foreground border border-border hover:border-foreground-muted px-2 py-0.5 rounded-md transition-colors"
               >
                 <ExpandIcon className="w-3 h-3" />
                 <span>Focus</span>
@@ -185,7 +170,7 @@ function ArtifactCard({
             </button>
             <button
               onClick={() => { onDirectSave(type, editText); setEditMode(false); }}
-              className="text-xs font-medium text-amber-700 border border-amber-400 bg-amber-50 hover:border-amber-500 px-2 py-0.5 rounded-md transition-colors"
+              className="text-xs font-medium text-amber-600 border border-amber-500/40 bg-amber-500/10 hover:border-amber-500/70 px-2 py-0.5 rounded-md transition-colors"
             >
               Save
             </button>
@@ -211,9 +196,7 @@ function ArtifactCard({
       {/* Read / streaming view */}
       {!editMode && displayText && (
         <>
-          {/* Content area — wand floats inside here */}
           <div className="relative">
-            {/* Magic wand — hovers over the text content */}
             {(isDone || isStreaming) && !editMode && !isRefining && (
               <button
                 onClick={() => { setShowRefine((v) => !v); setRefineError(null); }}
@@ -223,8 +206,8 @@ function ArtifactCard({
                   w-7 h-7 rounded-full border flex items-center justify-center
                   shadow-sm transition-all duration-150
                   ${showRefine
-                    ? "opacity-100 scale-100 border-primary bg-primary text-white"
-                    : "opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 border-border bg-card-bg text-foreground-muted hover:border-primary hover:bg-primary hover:text-white"
+                    ? "opacity-100 scale-100 border-primary bg-primary text-primary-foreground"
+                    : "opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 border-border bg-card-bg text-foreground-muted hover:border-primary hover:bg-primary hover:text-primary-foreground"
                   }
                 `}
               >
@@ -262,7 +245,7 @@ function ArtifactCard({
         </>
       )}
 
-      {/* Direct edit textarea — raw markdown */}
+      {/* Direct edit textarea */}
       {editMode && (
         <textarea
           value={editText}
@@ -297,7 +280,7 @@ function ArtifactCard({
               <button
                 onClick={submitRefinement}
                 disabled={isRefining || !refinement.trim()}
-                className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover disabled:bg-background-tertiary disabled:text-foreground-muted text-white transition-colors"
+                className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover disabled:bg-background-tertiary disabled:text-foreground-muted text-primary-foreground transition-colors"
               >
                 {isRefining ? "Applying…" : "Apply"}
               </button>
@@ -368,7 +351,7 @@ function ArtifactModal({
       className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className={`relative w-full max-w-3xl max-h-[90vh] flex flex-col rounded-2xl border bg-background shadow-2xl overflow-hidden transition-colors animate-modal-in ${editMode ? "border-amber-400" : showRefine ? "border-primary" : "border-border"}`}>
+      <div className={`relative w-full max-w-3xl max-h-[90vh] flex flex-col rounded-2xl border bg-background shadow-2xl overflow-hidden transition-colors animate-modal-in ${editMode ? "border-amber-500/50" : showRefine ? "border-primary/50" : "border-border"}`}>
 
         {/* Modal header */}
         <div className="px-5 py-3.5 flex items-center justify-between gap-2 border-b border-border flex-shrink-0">
@@ -382,7 +365,7 @@ function ArtifactModal({
                 <button
                   onClick={() => { setShowRefine((v) => !v); setRefineError(null); }}
                   title="Refine with AI"
-                  className={`p-1.5 rounded-lg border transition-colors ${showRefine ? "border-primary bg-primary text-white" : "border-border text-foreground-secondary hover:border-primary hover:bg-primary hover:text-white"}`}
+                  className={`p-1.5 rounded-lg border transition-colors ${showRefine ? "border-primary bg-primary text-primary-foreground" : "border-border text-foreground-muted hover:border-primary hover:bg-primary hover:text-primary-foreground"}`}
                 >
                   <SparklesIcon className="w-3.5 h-3.5" />
                 </button>
@@ -399,7 +382,7 @@ function ArtifactModal({
                 <button onClick={() => setEditMode(false)} className="text-xs text-foreground-muted hover:text-foreground px-2 py-1 rounded-lg transition-colors">Cancel</button>
                 <button
                   onClick={() => { onDirectSave(type, editText); setEditMode(false); }}
-                  className="text-xs font-medium text-amber-700 border border-amber-400 bg-amber-50 hover:border-amber-500 px-2 py-1 rounded-lg transition-colors"
+                  className="text-xs font-medium text-amber-600 border border-amber-500/40 bg-amber-500/10 hover:border-amber-500/70 px-2 py-1 rounded-lg transition-colors"
                 >
                   Save
                 </button>
@@ -417,7 +400,7 @@ function ArtifactModal({
             <textarea
               value={editText}
               onChange={(e) => setEditText(e.target.value)}
-              className="w-full h-full min-h-[60vh] px-5 py-4 bg-card-bg text-sm text-foreground font-mono leading-relaxed resize-none focus:outline-none"
+              className="w-full h-full min-h-[60vh] px-5 py-4 bg-background-secondary text-sm text-foreground font-mono leading-relaxed resize-none focus:outline-none"
             />
           ) : (
             <div className="px-5 py-4">
@@ -427,7 +410,7 @@ function ArtifactModal({
                   <span className="inline-block w-0.5 h-4 bg-primary animate-pulse align-middle ml-0.5" />
                 </pre>
               ) : (
-                <div className="md-content !text-sm [&_.md-content]:text-sm">
+                <div className="md-content !text-sm">
                   <ReactMarkdown>{displayText}</ReactMarkdown>
                 </div>
               )}
@@ -455,7 +438,7 @@ function ArtifactModal({
                 <button
                   onClick={submitRefinement}
                   disabled={isRefining || !refinement.trim()}
-                  className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover disabled:bg-background-tertiary disabled:text-foreground-muted text-white transition-colors"
+                  className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover disabled:bg-background-tertiary disabled:text-foreground-muted text-primary-foreground transition-colors"
                 >
                   {isRefining ? "Applying…" : "Apply"}
                 </button>
@@ -470,25 +453,17 @@ function ArtifactModal({
 
 // ─── idea panel ──────────────────────────────────────────────────────────────
 
-type QField = keyof NonNullable<Project["questionnaire"]>;
-const Q_LABELS: Record<QField, string> = {
-  userRoles: "Users & Roles",
-  accessControl: "Access Control",
-  keyWorkflows: "Key Workflows",
-  approvals: "Approvals",
-  notifications: "Notifications",
-};
-const Q_ORDER: QField[] = ["userRoles", "accessControl", "keyWorkflows", "approvals", "notifications"];
+function QuestionRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs font-medium text-foreground-muted mb-0.5">{label}</p>
+      <p className="text-xs text-foreground-secondary whitespace-pre-line leading-relaxed">{value}</p>
+    </div>
+  );
+}
 
-function IdeaPanel({
-  project,
-  onUpdateIdea,
-  onUpdateQuestionnaire,
-}: {
-  project: Project;
-  onUpdateIdea: (desc: string) => void;
-  onUpdateQuestionnaire: (field: QField, value: string) => void;
-}) {
+function IdeaPanel({ project, onUpdateIdea }: { project: Project; onUpdateIdea: (desc: string) => void }) {
+  const [expanded, setExpanded] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editText, setEditText] = useState("");
   const [showRefine, setShowRefine] = useState(false);
@@ -496,15 +471,10 @@ function IdeaPanel({
   const [isRefining, setIsRefining] = useState(false);
   const refineRef = useRef<HTMLTextAreaElement>(null);
 
-  const [openFields, setOpenFields] = useState<Set<QField>>(new Set());
-  const [editingField, setEditingField] = useState<QField | null>(null);
-  const [editingValue, setEditingValue] = useState("");
-
   useEffect(() => { if (showRefine) refineRef.current?.focus(); }, [showRefine]);
 
   const description = project.description ?? project.idea.split("\n\n")[0];
   const q = project.questionnaire;
-  const hasQuestionnaire = q && Q_ORDER.some((f) => q[f]);
 
   async function applyRefinement() {
     if (!refinement.trim() || isRefining) return;
@@ -541,173 +511,116 @@ function IdeaPanel({
     }
   }
 
-  function toggleField(field: QField) {
-    setOpenFields((prev) => {
-      const next = new Set(prev);
-      if (next.has(field)) { next.delete(field); } else { next.add(field); }
-      return next;
-    });
-  }
-
-  function startEditField(field: QField) {
-    setEditingField(field);
-    setEditingValue(q?.[field] ?? "");
-  }
-
-  function saveField(field: QField) {
-    onUpdateQuestionnaire(field, editingValue);
-    setEditingField(null);
-  }
-
   return (
-    <div className={`mb-4 rounded-xl bg-background border animate-fade-in overflow-hidden transition-colors ${editMode ? "border-amber-400" : showRefine ? "border-primary" : "border-border"}`}>
-      {/* Header */}
-      <div className="px-4 py-2.5 flex items-center justify-between border-b border-border">
-        <p className="text-xs font-medium text-foreground-muted">Project idea</p>
-        {!editMode && !isRefining && (
-          <div className="flex items-center gap-1.5">
-            <button
-              onClick={() => { setShowRefine((v) => !v); }}
-              title="Refine with AI"
-              className={`p-1.5 rounded-lg border transition-colors ${showRefine ? "border-primary bg-primary text-white" : "border-border text-foreground-secondary hover:border-primary hover:bg-primary hover:text-white"}`}
-            >
-              <SparklesIcon className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => { setEditText(description); setEditMode(true); setShowRefine(false); }}
-              className="text-xs text-foreground-muted hover:text-foreground border border-border hover:border-foreground-muted px-2 py-0.5 rounded-md transition-colors"
-            >
-              Edit
-            </button>
-          </div>
-        )}
-        {editMode && (
-          <div className="flex gap-1.5">
-            <button onClick={() => setEditMode(false)} className="text-xs text-foreground-muted hover:text-foreground px-2 py-0.5 rounded-md transition-colors">Cancel</button>
-            <button
-              onClick={() => { onUpdateIdea(editText); setEditMode(false); }}
-              className="text-xs font-medium text-amber-700 border border-amber-400 bg-amber-50 hover:border-amber-500 px-2 py-0.5 rounded-md transition-colors"
-            >
-              Save & Regenerate
-            </button>
-          </div>
-        )}
-        {isRefining && (
-          <span className="text-xs text-primary flex items-center gap-1.5 animate-fade-in">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-            Refining…
-          </span>
-        )}
+    <div className={`rounded-xl bg-background border animate-fade-in overflow-hidden transition-colors ${editMode ? "border-amber-500/50" : showRefine ? "border-primary/50" : "border-border"}`}>
+      {/* Collapsible header */}
+      <div
+        className="px-4 py-2.5 flex items-center justify-between cursor-pointer select-none"
+        onClick={() => { if (!editMode && !showRefine) setExpanded((v) => !v); }}
+      >
+        <div className="flex items-center gap-2 min-w-0">
+          <svg
+            className={`w-3.5 h-3.5 text-foreground-muted transition-transform duration-200 shrink-0 ${expanded ? "rotate-90" : ""}`}
+            viewBox="0 0 16 16" fill="currentColor"
+          >
+            <path d="M6 3l5 5-5 5V3z" />
+          </svg>
+          <p className="text-xs font-medium text-foreground-muted">Project idea</p>
+          {!expanded && (
+            <p className="text-xs text-foreground-secondary truncate ml-1 max-w-[160px]">{description}</p>
+          )}
+        </div>
+        <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+          {!editMode && !isRefining && (
+            <>
+              <button
+                onClick={() => { setShowRefine((v) => !v); setExpanded(true); }}
+                title="Refine with AI"
+                className={`p-1.5 rounded-lg border transition-colors ${showRefine ? "border-primary bg-primary text-primary-foreground" : "border-border text-foreground-muted hover:border-primary hover:bg-primary hover:text-primary-foreground"}`}
+              >
+                <SparklesIcon className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={() => { setEditText(description); setEditMode(true); setShowRefine(false); setExpanded(true); }}
+                className="text-xs text-foreground-muted hover:text-foreground border border-border hover:border-foreground-muted px-2 py-0.5 rounded-md transition-colors"
+              >
+                Edit
+              </button>
+            </>
+          )}
+          {editMode && (
+            <>
+              <button onClick={() => setEditMode(false)} className="text-xs text-foreground-muted hover:text-foreground px-2 py-0.5 rounded-md transition-colors">Cancel</button>
+              <button
+                onClick={() => { onUpdateIdea(editText); setEditMode(false); }}
+                className="text-xs font-medium text-amber-600 border border-amber-500/40 bg-amber-500/10 hover:border-amber-500/70 px-2 py-0.5 rounded-md transition-colors"
+              >
+                Save & Regenerate
+              </button>
+            </>
+          )}
+          {isRefining && (
+            <span className="text-xs text-primary flex items-center gap-1.5 animate-fade-in">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+              Refining…
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* Description body */}
-      {editMode ? (
-        <textarea
-          value={editText}
-          onChange={(e) => setEditText(e.target.value)}
-          rows={4}
-          autoFocus
-          className="w-full px-4 py-3 bg-card-bg text-sm text-foreground font-mono leading-relaxed resize-none focus:outline-none"
-        />
-      ) : (
-        <div className="px-4 py-3">
-          <p className="text-sm text-foreground whitespace-pre-line max-h-24 overflow-y-auto leading-relaxed">{description}</p>
-        </div>
-      )}
+      {/* Collapsible body */}
+      {(expanded || editMode || showRefine) && (
+        <>
+          <div className="border-t border-border" />
 
-      {/* AI refine input */}
-      {showRefine && (
-        <div className="px-4 py-3 border-t border-border bg-card-bg space-y-2 animate-refine-in">
-          <textarea
-            ref={refineRef}
-            value={refinement}
-            onChange={(e) => setRefinement(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); applyRefinement(); } }}
-            placeholder="How should the idea be refined? (⌘↵ to apply)"
-            rows={2}
-            className="w-full px-3 py-2 rounded-lg bg-background border border-input-border text-foreground text-xs placeholder:text-foreground-muted focus:outline-none focus:border-input-border-focus resize-none"
-          />
-          <div className="flex justify-end gap-2">
-            <button onClick={() => { setShowRefine(false); setRefinement(""); }} className="text-xs text-foreground-muted hover:text-foreground px-3 py-1.5 rounded-lg transition-colors">Cancel</button>
-            <button
-              onClick={applyRefinement}
-              disabled={!refinement.trim()}
-              className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover disabled:bg-background-tertiary disabled:text-foreground-muted text-white transition-colors"
-            >
-              Refine & Regenerate
-            </button>
-          </div>
-        </div>
-      )}
+          {editMode ? (
+            <textarea
+              value={editText}
+              onChange={(e) => setEditText(e.target.value)}
+              rows={4}
+              autoFocus
+              className="w-full px-4 py-3 bg-background-secondary text-sm text-foreground font-mono leading-relaxed resize-none focus:outline-none"
+            />
+          ) : (
+            <div className="px-4 py-3">
+              <p className="text-sm text-foreground-secondary whitespace-pre-line max-h-32 overflow-y-auto leading-relaxed">{description}</p>
+            </div>
+          )}
 
-      {/* Questionnaire accordion */}
-      {!editMode && hasQuestionnaire && (
-        <div className="border-t border-border/60">
-          {Q_ORDER.filter((f) => q?.[f]).map((field) => {
-            const isOpen = openFields.has(field);
-            const isEditing = editingField === field;
-            return (
-              <div key={field} className="border-b border-border/40 last:border-b-0">
-                {/* Accordion header */}
-                <div className="flex items-center justify-between px-4 py-2 hover:bg-background-secondary transition-colors">
-                  <button
-                    onClick={() => toggleField(field)}
-                    className="flex items-center gap-2 flex-1 text-left"
-                  >
-                    <svg
-                      className={`w-3 h-3 text-foreground-muted transition-transform duration-200 ${isOpen ? "rotate-90" : ""}`}
-                      viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                    >
-                      <path d="M4 2L8 6L4 10" />
-                    </svg>
-                    <span className="text-xs font-medium text-foreground-secondary">{Q_LABELS[field]}</span>
-                  </button>
-                  {!isEditing && (
-                    <button
-                      onClick={() => { startEditField(field); if (!isOpen) toggleField(field); }}
-                      className="text-[11px] text-foreground-muted hover:text-foreground border border-border/50 hover:border-border px-1.5 py-0.5 rounded transition-colors"
-                    >
-                      Edit
-                    </button>
-                  )}
-                  {isEditing && (
-                    <div className="flex gap-1">
-                      <button onClick={() => setEditingField(null)} className="text-[11px] text-foreground-muted hover:text-foreground px-1.5 py-0.5 rounded transition-colors">Cancel</button>
-                      <button
-                        onClick={() => saveField(field)}
-                        className="text-[11px] font-medium text-amber-700 border border-amber-400 bg-amber-50 hover:border-amber-500 px-1.5 py-0.5 rounded transition-colors"
-                      >
-                        Save & Regen
-                      </button>
-                    </div>
-                  )}
-                </div>
-                {/* Accordion body */}
-                {isOpen && (
-                  <div className="px-4 pb-3">
-                    {isEditing ? (
-                      <textarea
-                        value={editingValue}
-                        onChange={(e) => setEditingValue(e.target.value)}
-                        autoFocus
-                        rows={4}
-                        className="w-full px-3 py-2 rounded-lg bg-background border border-input-border text-xs text-foreground font-mono leading-relaxed resize-y focus:outline-none focus:border-amber-400"
-                      />
-                    ) : (
-                      <div className="pl-5 prose prose-xs max-w-none
-                        [&>p]:text-xs [&>p]:text-foreground-secondary [&>p]:mb-1 [&>p]:leading-relaxed
-                        [&>ul]:list-disc [&>ul]:pl-4 [&>ul]:mb-1 [&>ul>li]:text-xs [&>ul>li]:text-foreground-secondary
-                        [&>ol]:list-decimal [&>ol]:pl-4 [&>ol]:mb-1 [&>ol>li]:text-xs [&>ol>li]:text-foreground-secondary
-                        [&>strong]:font-semibold [&>strong]:text-foreground">
-                        <ReactMarkdown>{(q?.[field] ?? "").replace(/^[•·‣▸] /gm, "- ")}</ReactMarkdown>
-                      </div>
-                    )}
-                  </div>
-                )}
+          {!editMode && q && (q.userRoles || q.accessControl || q.keyWorkflows || q.approvals || q.notifications) && (
+            <div className="px-4 pb-3 pt-3 border-t border-border-light space-y-2">
+              {q.userRoles && <QuestionRow label="Users & Roles" value={q.userRoles} />}
+              {q.accessControl && <QuestionRow label="Access Control" value={q.accessControl} />}
+              {q.keyWorkflows && <QuestionRow label="Key Workflows" value={q.keyWorkflows} />}
+              {q.approvals && <QuestionRow label="Approvals" value={q.approvals} />}
+              {q.notifications && <QuestionRow label="Notifications" value={q.notifications} />}
+            </div>
+          )}
+
+          {showRefine && (
+            <div className="px-4 py-3 border-t border-border bg-card-bg space-y-2">
+              <textarea
+                ref={refineRef}
+                value={refinement}
+                onChange={(e) => setRefinement(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); applyRefinement(); } }}
+                placeholder="How should the idea be refined? (⌘↵ to apply)"
+                rows={2}
+                className="w-full px-3 py-2 rounded-lg bg-background border border-input-border text-foreground text-xs placeholder:text-foreground-muted focus:outline-none focus:border-primary resize-none"
+              />
+              <div className="flex justify-end gap-2">
+                <button onClick={() => { setShowRefine(false); setRefinement(""); }} className="text-xs text-foreground-muted hover:text-foreground px-3 py-1.5 rounded-lg transition-colors">Cancel</button>
+                <button
+                  onClick={applyRefinement}
+                  disabled={!refinement.trim()}
+                  className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover disabled:bg-background-tertiary disabled:text-foreground-muted text-primary-foreground transition-colors"
+                >
+                  Refine & Regenerate
+                </button>
               </div>
-            );
-          })}
-        </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
@@ -722,34 +635,45 @@ function ViewToggle({
   active: "business" | "technical" | "architecture";
   onChange: (v: "business" | "technical" | "architecture") => void;
 }) {
-  const labels: Record<string, string> = { business: "Business", technical: "Technical", architecture: "Architecture" };
+  const labels: Record<string, string> = { business: "Business Mode", technical: "Dev Mode", architecture: "Architecture" };
   return (
     <div className="flex flex-col gap-1">
       <p className="text-xs font-medium text-foreground-muted mb-1">View</p>
-      <div className="flex flex-col gap-1">
-        {(["business", "technical", "architecture"] as const).map((v) => (
-          <button
-            key={v}
-            onClick={() => onChange(v)}
-            className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
-              active === v
-                ? "bg-primary text-white shadow-sm"
-                : "text-foreground-muted hover:text-foreground hover:bg-background-secondary"
-            }`}
-          >
-            {labels[v]}
-          </button>
-        ))}
-      </div>
+      {(["business", "technical", "architecture"] as const).map((v) => (
+        <button
+          key={v}
+          onClick={() => onChange(v)}
+          className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
+            active === v
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "text-foreground-muted hover:text-foreground hover:bg-background-secondary"
+          }`}
+        >
+          {labels[v]}
+        </button>
+      ))}
     </div>
   );
 }
 
-// ─── main page ───────────────────────────────────────────────────────────────
+// ─── main workspace content ───────────────────────────────────────────────────
 
-export default function WorkspacePage() {
+function WorkspaceContent() {
   const router = useRouter();
-  const [project, setProject] = useState<Project | null>(null);
+  const searchParams = useSearchParams();
+  const projectId = searchParams.get("projectId") as Id<"projects"> | null;
+
+  // Convex queries & mutations
+  const convexProject = useQuery(api.projects.get, projectId ? { id: projectId } : "skip");
+  const convexOnboarding = useQuery(
+    api.onboarding.get,
+    convexProject?.onboardingId ? { id: convexProject.onboardingId } : "skip"
+  );
+  const convexArtifacts = useQuery(api.artifacts.getByProject, projectId ? { projectId } : "skip");
+  const saveArtifactsMut = useMutation(api.artifacts.saveCompleted);
+  const updateArtifactMut = useMutation(api.artifacts.updateArtifact);
+  const updateProjectMut = useMutation(api.projects.update);
+
   const [artifacts, setArtifacts] = useState<Artifacts>({});
   const [streamingContent, setStreamingContent] = useState<Partial<Record<ArtifactType, string>>>({});
   const [isGenerating, setIsGenerating] = useState(false);
@@ -769,33 +693,71 @@ export default function WorkspacePage() {
   // Refs for accurate accumulation without stale closures
   const streamAccumRef = useRef<Partial<Record<ArtifactType, string>>>({});
   const artifactsRef = useRef<Artifacts>({});
-  const projectRef = useRef<Project | null>(null);
   const hasGenerated = useRef(false);
+  const hasLoadedFromDb = useRef(false);
 
-  // Keep artifactsRef and projectRef in sync
-  useEffect(() => { artifactsRef.current = artifacts; }, [artifacts]);
+  // Build a project-like object from Convex data
+  const project = convexProject ? {
+    id: convexProject._id,
+    name: convexProject.name,
+    idea: convexProject.idea,
+    description: convexProject.description,
+    questionnaire: convexOnboarding ? {
+      userRoles: convexOnboarding.userRoles || undefined,
+      accessControl: convexOnboarding.accessControl || undefined,
+      keyWorkflows: convexOnboarding.keyWorkflows || undefined,
+      approvals: convexOnboarding.approvals || undefined,
+      notifications: convexOnboarding.notifications || undefined,
+    } : undefined,
+    mode: convexProject.mode,
+    dashboardStyle: convexProject.dashboardStyle,
+    createdAt: convexProject.createdAt,
+  } : null;
+
+  const projectRef = useRef(project);
   useEffect(() => { projectRef.current = project; }, [project]);
+  useEffect(() => { artifactsRef.current = artifacts; }, [artifacts]);
 
+  // Redirect if no project ID in URL
   useEffect(() => {
-    const proj = loadProject();
-    if (!proj) { router.replace("/"); return; }
-    setProject(proj);
-    projectRef.current = proj;
-    setActiveView(proj.dashboardStyle);
+    if (!projectId) {
+      router.replace("/");
+    }
+  }, [projectId, router]);
 
-    const cached = loadArtifacts();
-    if (cached && Object.keys(cached).length > 0) {
-      setArtifacts(cached);
-      artifactsRef.current = cached;
-      return;
+  // Load artifacts from Convex when available, and auto-generate if empty
+  useEffect(() => {
+    if (!convexProject || hasLoadedFromDb.current) return;
+
+    setActiveView(convexProject.dashboardStyle);
+
+    if (convexArtifacts && convexArtifacts.status === "completed") {
+      const loaded: Artifacts = {};
+      const keys: ArtifactType[] = ["vision", "requirements", "architecture", "frameworks", "backlog", "tests", "competitive_analysis", "cost_estimate"];
+      for (const key of keys) {
+        const val = convexArtifacts[key as keyof typeof convexArtifacts];
+        if (typeof val === "string") {
+          loaded[key] = val;
+        }
+      }
+      if (Object.keys(loaded).length > 0) {
+        setArtifacts(loaded);
+        artifactsRef.current = loaded;
+        hasLoadedFromDb.current = true;
+        return;
+      }
     }
 
-    if (hasGenerated.current) return;
-    hasGenerated.current = true;
-    runGeneration(proj);
-  }, [router]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (convexArtifacts === undefined) return;
 
-  async function runGeneration(proj: Project) {
+    hasLoadedFromDb.current = true;
+    if (!hasGenerated.current) {
+      hasGenerated.current = true;
+      runGeneration(convexProject.idea, convexProject.mode);
+    }
+  }, [convexProject, convexArtifacts]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function runGeneration(idea: string, mode: string) {
     streamAccumRef.current = {};
     setIsGenerating(true);
     setError(null);
@@ -804,7 +766,7 @@ export default function WorkspacePage() {
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idea: proj.idea, mode: proj.mode }),
+        body: JSON.stringify({ idea, mode }),
       });
       if (!res.ok || !res.body) throw new Error("Generation failed");
       const reader = res.body.getReader();
@@ -833,8 +795,10 @@ export default function WorkspacePage() {
           }
         }
       }
-      saveArtifacts(collected);
       artifactsRef.current = collected;
+      if (projectId) {
+        await saveArtifactsMut({ projectId, ...collected });
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
@@ -842,42 +806,23 @@ export default function WorkspacePage() {
     }
   }
 
-  function buildAndReplaceProject(updated: Project) {
-    setProject(updated);
-    projectRef.current = updated;
-    sessionStorage.setItem("sdlc_project", JSON.stringify(updated));
+  function handleUpdateIdea(newDescription: string) {
+    const proj = projectRef.current;
+    if (!proj || !projectId) return;
+    const q = proj.questionnaire;
+    const ideaParts = [newDescription];
+    if (q?.userRoles) ideaParts.push(`Users & roles: ${q.userRoles}`);
+    if (q?.accessControl) ideaParts.push(`Access control: ${q.accessControl}`);
+    if (q?.keyWorkflows) ideaParts.push(`Key workflows: ${q.keyWorkflows}`);
+    if (q?.approvals) ideaParts.push(`Approvals: ${q.approvals}`);
+    if (q?.notifications) ideaParts.push(`Notifications: ${q.notifications}`);
+    const newIdea = ideaParts.join("\n\n");
+    updateProjectMut({ id: projectId, description: newDescription, idea: newIdea });
     setArtifacts({});
     artifactsRef.current = {};
     setStreamingContent({});
     streamAccumRef.current = {};
-    sessionStorage.removeItem("sdlc_artifacts");
-    runGeneration(updated);
-  }
-
-  function rebuildIdea(desc: string, q: Project["questionnaire"]): string {
-    const parts = [desc];
-    if (q?.userRoles) parts.push(`Users & roles: ${q.userRoles}`);
-    if (q?.accessControl) parts.push(`Access control: ${q.accessControl}`);
-    if (q?.keyWorkflows) parts.push(`Key workflows: ${q.keyWorkflows}`);
-    if (q?.approvals) parts.push(`Approvals: ${q.approvals}`);
-    if (q?.notifications) parts.push(`Notifications: ${q.notifications}`);
-    return parts.join("\n\n");
-  }
-
-  function handleUpdateIdea(newDescription: string) {
-    const proj = projectRef.current;
-    if (!proj) return;
-    const updated: Project = { ...proj, description: newDescription, idea: rebuildIdea(newDescription, proj.questionnaire) };
-    buildAndReplaceProject(updated);
-  }
-
-  function handleUpdateQuestionnaire(field: QField, value: string) {
-    const proj = projectRef.current;
-    if (!proj) return;
-    const newQ = { ...proj.questionnaire, [field]: value || undefined };
-    const desc = proj.description ?? proj.idea.split("\n\n")[0];
-    const updated: Project = { ...proj, questionnaire: newQ, idea: rebuildIdea(desc, newQ) };
-    buildAndReplaceProject(updated);
+    runGeneration(newIdea, proj.mode);
   }
 
   // Streaming refinement — handles NDJSON from /api/feedback
@@ -913,17 +858,13 @@ export default function WorkspacePage() {
         if (!line.trim()) continue;
         const parsed = JSON.parse(line);
 
-        if (parsed.event === "error") {
-          throw new Error(parsed.message);
-        }
+        if (parsed.event === "error") throw new Error(parsed.message);
 
         if (parsed.event === "impact") {
           const affected = parsed.affectedArtifacts as ArtifactType[];
           setStreamingContent((prev) => {
             const next = { ...prev };
-            for (const t of affected) {
-              next[t] = artifactsRef.current[t] ?? "";
-            }
+            for (const t of affected) { next[t] = artifactsRef.current[t] ?? ""; }
             return next;
           });
         }
@@ -931,8 +872,7 @@ export default function WorkspacePage() {
         if (parsed.event === "chunk") {
           const t = parsed.artifactType as ArtifactType;
           refinementAccum[t] = (refinementAccum[t] ?? "") + parsed.chunk;
-          const text = refinementAccum[t]!;
-          setStreamingContent((prev) => ({ ...prev, [t]: text }));
+          setStreamingContent((prev) => ({ ...prev, [t]: refinementAccum[t]! }));
         }
 
         if (parsed.event === "artifact_done") {
@@ -943,29 +883,23 @@ export default function WorkspacePage() {
             artifactsRef.current = merged;
             return merged;
           });
-          setStreamingContent((prev) => {
-            const next = { ...prev };
-            delete next[t];
-            return next;
-          });
+          setStreamingContent((prev) => { const next = { ...prev }; delete next[t]; return next; });
+          if (projectId) { updateArtifactMut({ projectId, key: t, value: final }); }
         }
 
-        if (parsed.event === "complete") {
-          saveArtifacts(artifactsRef.current);
-          setRefinementCount((c) => c + 1);
-        }
+        if (parsed.event === "complete") { setRefinementCount((c) => c + 1); }
       }
     }
-  }, []);
+  }, [projectId, updateArtifactMut]);
 
   const handleDirectSave = useCallback((type: ArtifactType, text: string) => {
     setArtifacts((prev) => {
       const merged = { ...prev, [type]: text };
-      saveArtifacts(merged);
       artifactsRef.current = merged;
       return merged;
     });
-  }, []);
+    if (projectId) { updateArtifactMut({ projectId, key: type, value: text }); }
+  }, [projectId, updateArtifactMut]);
 
   function parseSSEBuffer(buffer: string) {
     const parsed: Array<{ type: string; data: Record<string, unknown> }> = [];
@@ -1010,7 +944,7 @@ export default function WorkspacePage() {
           if (event.type === "architecture") { setArchGraph(event.data as unknown as ArchitectureGraph); setArchPhase("graph-ready"); }
           if (event.type === "prose") { setArchPhase("streaming"); setArchProse((prev) => prev + (event.data.chunk as string)); }
           if (event.type === "done") setArchPhase("done");
-          if (event.type === "error") { setArchPhase("error"); }
+          if (event.type === "error") setArchPhase("error");
         }
       }
     } catch { setArchPhase("error"); }
@@ -1032,14 +966,12 @@ export default function WorkspacePage() {
       <header className="sticky top-0 z-50 shrink-0 border-b border-border bg-nav-bg">
         <div className="flex items-center h-14 px-4 sm:px-6 justify-between">
           <div className="flex items-center gap-3">
-            <button onClick={() => router.push("/")}>
-              <MaturaLogo className="h-7" />
-            </button>
+            <MaturaLogo className="h-7" />
             {project && (
               <>
-                <div className="h-5 w-px bg-border" />
-                <div>
-                  <p className="text-sm font-semibold text-foreground leading-tight">
+                <div className="hidden sm:block h-5 w-px bg-border" />
+                <div className="hidden sm:block">
+                  <p className="text-sm font-medium text-foreground leading-tight">
                     {project.name}
                   </p>
                   <p className="text-xs text-foreground-muted leading-tight flex items-center gap-1.5">
@@ -1059,20 +991,20 @@ export default function WorkspacePage() {
             )}
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             {refinementCount > 0 && (
               <span className="flex items-center gap-1.5 text-xs text-success bg-success/10 border border-success/20 px-2.5 py-1 rounded-full">
                 <span className="w-1.5 h-1.5 rounded-full bg-success" />
                 {refinementCount} refinement{refinementCount !== 1 ? "s" : ""} applied
               </span>
             )}
-            <span className="flex items-center gap-1.5 text-xs text-foreground-muted">
-              Powered by
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" className="text-primary">
-                <path d="M12 1L9.5 8.5H2L8 13L5.5 20.5L12 16L18.5 20.5L16 13L22 8.5H14.5L12 1Z" />
-              </svg>
-              <span className="font-semibold text-foreground">Claude</span>
-            </span>
+            <button
+              onClick={() => router.push("/home")}
+              className="rounded-full border border-border px-4 py-1.5 text-xs font-medium text-foreground-secondary hover:text-foreground hover:border-foreground-muted transition-colors"
+            >
+              Home
+            </button>
+            <UserButton />
           </div>
         </div>
       </header>
@@ -1096,11 +1028,7 @@ export default function WorkspacePage() {
           <div className="flex-1 p-4 flex flex-col gap-4 bg-background-secondary">
             {project && (
               <>
-                <IdeaPanel
-                  project={project}
-                  onUpdateIdea={handleUpdateIdea}
-                  onUpdateQuestionnaire={handleUpdateQuestionnaire}
-                />
+                <IdeaPanel project={project} onUpdateIdea={handleUpdateIdea} />
                 <ViewToggle active={activeView} onChange={handleViewChange} />
               </>
             )}
@@ -1119,8 +1047,8 @@ export default function WorkspacePage() {
                     ? "Invalid API key. Check ANTHROPIC_API_KEY in .env.local."
                     : "Something went wrong. Please try again."}
               </p>
-              <button onClick={() => router.push("/")} className="text-xs text-primary underline">
-                Start over
+              <button onClick={() => router.push("/home")} className="text-xs text-primary underline">
+                Back to home
               </button>
             </div>
           )}
@@ -1178,5 +1106,13 @@ export default function WorkspacePage() {
         />
       )}
     </div>
+  );
+}
+
+export default function WorkspacePage() {
+  return (
+    <Suspense fallback={<div className="h-screen bg-background" />}>
+      <WorkspaceContent />
+    </Suspense>
   );
 }

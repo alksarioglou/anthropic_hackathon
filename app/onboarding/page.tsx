@@ -6,7 +6,6 @@ import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { createEmptyPayload, type OnboardingPayload } from "@/lib/onboarding-payload";
-import type { Project } from "@/types";
 import { OnboardingNav } from "./components/OnboardingNav";
 import { WelcomeStep } from "./components/WelcomeStep";
 import { ProjectModeStep } from "./components/ProjectModeStep";
@@ -42,6 +41,7 @@ const STEP_ORDER: StepId[] = [
 export default function OnboardingPage() {
   const router = useRouter();
   const saveOnboarding = useMutation(api.onboarding.save);
+  const createProject = useMutation(api.projects.create);
   const [onboardingId] = useState<Id<"onboarding"> | null>(null);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [animDir, setAnimDir] = useState<"forward" | "back">("forward");
@@ -155,13 +155,14 @@ export default function OnboardingPage() {
   }
 
   async function handleSubmit() {
-    const id = await saveOnboarding({
+    // 1. Save onboarding record
+    const obId = await saveOnboarding({
       id: onboardingId ?? undefined,
       ...payload,
       status: "submitted",
     });
 
-    // Build a rich idea string from all onboarding fields for the generation agents
+    // 2. Build a rich idea string from all onboarding fields
     const ideaParts = [payload.toolDescription];
     if (payload.userRoles) ideaParts.push(`Users & roles: ${payload.userRoles}`);
     if (payload.accessControl) ideaParts.push(`Access control: ${payload.accessControl}`);
@@ -169,27 +170,18 @@ export default function OnboardingPage() {
     if (payload.approvals) ideaParts.push(`Approvals: ${payload.approvals}`);
     if (payload.notifications) ideaParts.push(`Notifications: ${payload.notifications}`);
 
-    // Save in workspace format
-    const project: Project = {
-      id: id,
+    // 3. Create project record in Convex
+    const projectId = await createProject({
+      onboardingId: obId,
       name: payload.toolDescription.split(" ").slice(0, 6).join(" "),
       idea: ideaParts.join("\n\n"),
       description: payload.toolDescription,
-      questionnaire: {
-        userRoles: payload.userRoles || undefined,
-        accessControl: payload.accessControl || undefined,
-        keyWorkflows: payload.keyWorkflows || undefined,
-        approvals: payload.approvals || undefined,
-        notifications: payload.notifications || undefined,
-      },
       mode: payload.projectMode,
       dashboardStyle: "technical",
-      createdAt: Date.now(),
-    };
-    sessionStorage.setItem("sdlc_project", JSON.stringify(project));
-    sessionStorage.removeItem("sdlc_artifacts");
+    });
 
-    router.push("/workspace");
+    // 4. Navigate to workspace with project ID
+    router.push(`/workspace?projectId=${projectId}`);
   }
 
   function canProceed(): boolean {
