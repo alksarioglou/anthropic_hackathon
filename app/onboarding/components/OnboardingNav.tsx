@@ -13,11 +13,12 @@ interface OnboardingNavProps {
 
 const stepLabelKeys: Record<StepId, string> = {
   start: "onboarding.steps.start",
-  requirements: "onboarding.steps.requirements",
-  dataModel: "onboarding.steps.dataModel",
+  projectMode: "onboarding.steps.projectMode",
+  toolIdea: "onboarding.steps.toolIdea",
+  usersRoles: "onboarding.steps.usersRoles",
   workflows: "onboarding.steps.workflows",
-  integrations: "onboarding.steps.integrations",
-  finish: "onboarding.steps.finish",
+  files: "onboarding.steps.files",
+  review: "onboarding.steps.review",
 };
 
 export function OnboardingNav({
@@ -37,11 +38,11 @@ export function OnboardingNav({
         </span>
 
         <div className="flex items-center gap-1">
-          {steps.map((stepId) => {
+          {steps.map((stepId, index) => {
             const isActive = stepId === currentStep;
             const isCompleted = completedSteps.has(stepId);
-            const isFirst = stepId === "start";
-            const isLast = stepId === "finish";
+            const isFirst = index === 0;
+            const isLast = index === steps.length - 1;
 
             return (
               <button
@@ -59,12 +60,7 @@ export function OnboardingNav({
                   hover:text-foreground
                 `}
               >
-                {isFirst && (
-                  <span className="text-xs">
-                    {isCompleted ? "\u2713" : "\u2691"}
-                  </span>
-                )}
-                {isLast && (
+                {(isFirst || isLast) && (
                   <span className="text-xs">
                     {isCompleted ? "\u2713" : "\u2691"}
                   </span>
