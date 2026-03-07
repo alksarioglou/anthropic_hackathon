@@ -979,7 +979,15 @@ function WorkspaceContent() {
             </p>
           </div>
         </div>
-        <UserButton />
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => router.push("/home")}
+            className="rounded-full border border-zinc-700 px-4 py-1.5 text-xs font-medium text-zinc-400 hover:text-zinc-100 hover:border-zinc-500 transition-colors"
+          >
+            Home
+          </button>
+          <UserButton />
+        </div>
       </header>
 
       {/* Refinement bar */}

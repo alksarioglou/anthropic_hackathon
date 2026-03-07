@@ -35,6 +35,12 @@ export const getByOnboarding = query({
   },
 });
 
+export const list = query({
+  handler: async (ctx) => {
+    return await ctx.db.query("projects").order("desc").collect();
+  },
+});
+
 export const update = mutation({
   args: {
     id: v.id("projects"),
