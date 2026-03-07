@@ -143,7 +143,7 @@ function ArtifactCard({
           {isStreaming && (
             <span className="flex-shrink-0 flex items-center gap-1.5 text-xs text-indigo-400 animate-fade-in">
               <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
-              AI is writing…
+              Claude is writing…
             </span>
           )}
         </div>
@@ -437,7 +437,7 @@ function ArtifactModal({
 
         {/* Refinement form */}
         {!editMode && showRefine && (
-          <div className="px-5 py-3.5 border-t border-zinc-800 bg-zinc-950 space-y-2 flex-shrink-0">
+          <div className="px-5 py-3.5 border-t border-zinc-800 bg-zinc-950 space-y-2 flex-shrink-0 animate-refine-in">
             <textarea
               ref={refineRef}
               value={refinement}
@@ -470,16 +470,25 @@ function ArtifactModal({
 
 // ─── idea panel ──────────────────────────────────────────────────────────────
 
-function QuestionRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <p className="text-xs font-medium text-zinc-600 mb-0.5">{label}</p>
-      <p className="text-xs text-zinc-400 whitespace-pre-line leading-relaxed">{value}</p>
-    </div>
-  );
-}
+type QField = keyof NonNullable<Project["questionnaire"]>;
+const Q_LABELS: Record<QField, string> = {
+  userRoles: "Users & Roles",
+  accessControl: "Access Control",
+  keyWorkflows: "Key Workflows",
+  approvals: "Approvals",
+  notifications: "Notifications",
+};
+const Q_ORDER: QField[] = ["userRoles", "accessControl", "keyWorkflows", "approvals", "notifications"];
 
-function IdeaPanel({ project, onUpdateIdea }: { project: Project; onUpdateIdea: (desc: string) => void }) {
+function IdeaPanel({
+  project,
+  onUpdateIdea,
+  onUpdateQuestionnaire,
+}: {
+  project: Project;
+  onUpdateIdea: (desc: string) => void;
+  onUpdateQuestionnaire: (field: QField, value: string) => void;
+}) {
   const [editMode, setEditMode] = useState(false);
   const [editText, setEditText] = useState("");
   const [showRefine, setShowRefine] = useState(false);
@@ -487,10 +496,16 @@ function IdeaPanel({ project, onUpdateIdea }: { project: Project; onUpdateIdea: 
   const [isRefining, setIsRefining] = useState(false);
   const refineRef = useRef<HTMLTextAreaElement>(null);
 
+  // Accordion state
+  const [openFields, setOpenFields] = useState<Set<QField>>(new Set());
+  const [editingField, setEditingField] = useState<QField | null>(null);
+  const [editingValue, setEditingValue] = useState("");
+
   useEffect(() => { if (showRefine) refineRef.current?.focus(); }, [showRefine]);
 
   const description = project.description ?? project.idea.split("\n\n")[0];
   const q = project.questionnaire;
+  const hasQuestionnaire = q && Q_ORDER.some((f) => q[f]);
 
   async function applyRefinement() {
     if (!refinement.trim() || isRefining) return;
@@ -527,8 +542,27 @@ function IdeaPanel({ project, onUpdateIdea }: { project: Project; onUpdateIdea: 
     }
   }
 
+  function toggleField(field: QField) {
+    setOpenFields((prev) => {
+      const next = new Set(prev);
+      if (next.has(field)) { next.delete(field); } else { next.add(field); }
+      return next;
+    });
+  }
+
+  function startEditField(field: QField) {
+    setEditingField(field);
+    setEditingValue(q?.[field] ?? "");
+  }
+
+  function saveField(field: QField) {
+    onUpdateQuestionnaire(field, editingValue);
+    setEditingField(null);
+  }
+
   return (
     <div className={`mb-6 rounded-xl bg-zinc-900 border animate-fade-in overflow-hidden transition-colors ${editMode ? "border-amber-500/50" : showRefine ? "border-indigo-500/50" : "border-zinc-800"}`}>
+      {/* Header */}
       <div className="px-4 py-2.5 flex items-center justify-between border-b border-zinc-800">
         <p className="text-xs font-medium text-zinc-500">Project idea</p>
         {!editMode && !isRefining && (
@@ -567,6 +601,7 @@ function IdeaPanel({ project, onUpdateIdea }: { project: Project; onUpdateIdea: 
         )}
       </div>
 
+      {/* Description body */}
       {editMode ? (
         <textarea
           value={editText}
@@ -581,18 +616,9 @@ function IdeaPanel({ project, onUpdateIdea }: { project: Project; onUpdateIdea: 
         </div>
       )}
 
-      {!editMode && q && (q.userRoles || q.accessControl || q.keyWorkflows || q.approvals || q.notifications) && (
-        <div className="px-4 pb-3 pt-3 border-t border-zinc-800/60 space-y-2">
-          {q.userRoles && <QuestionRow label="Users & Roles" value={q.userRoles} />}
-          {q.accessControl && <QuestionRow label="Access Control" value={q.accessControl} />}
-          {q.keyWorkflows && <QuestionRow label="Key Workflows" value={q.keyWorkflows} />}
-          {q.approvals && <QuestionRow label="Approvals" value={q.approvals} />}
-          {q.notifications && <QuestionRow label="Notifications" value={q.notifications} />}
-        </div>
-      )}
-
+      {/* AI refine input */}
       {showRefine && (
-        <div className="px-4 py-3 border-t border-zinc-800 bg-zinc-950 space-y-2">
+        <div className="px-4 py-3 border-t border-zinc-800 bg-zinc-950 space-y-2 animate-refine-in">
           <textarea
             ref={refineRef}
             value={refinement}
@@ -612,6 +638,76 @@ function IdeaPanel({ project, onUpdateIdea }: { project: Project; onUpdateIdea: 
               Refine & Regenerate
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Questionnaire accordion */}
+      {!editMode && hasQuestionnaire && (
+        <div className="border-t border-zinc-800/60">
+          {Q_ORDER.filter((f) => q?.[f]).map((field) => {
+            const isOpen = openFields.has(field);
+            const isEditing = editingField === field;
+            return (
+              <div key={field} className="border-b border-zinc-800/40 last:border-b-0">
+                {/* Accordion header */}
+                <div className="flex items-center justify-between px-4 py-2 hover:bg-zinc-800/30 transition-colors">
+                  <button
+                    onClick={() => toggleField(field)}
+                    className="flex items-center gap-2 flex-1 text-left"
+                  >
+                    <svg
+                      className={`w-3 h-3 text-zinc-500 transition-transform duration-200 ${isOpen ? "rotate-90" : ""}`}
+                      viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                    >
+                      <path d="M4 2L8 6L4 10" />
+                    </svg>
+                    <span className="text-xs font-medium text-zinc-400">{Q_LABELS[field]}</span>
+                  </button>
+                  {!isEditing && (
+                    <button
+                      onClick={() => { startEditField(field); if (!isOpen) toggleField(field); }}
+                      className="text-[11px] text-zinc-600 hover:text-zinc-300 border border-zinc-700/50 hover:border-zinc-500 px-1.5 py-0.5 rounded transition-colors"
+                    >
+                      Edit
+                    </button>
+                  )}
+                  {isEditing && (
+                    <div className="flex gap-1">
+                      <button onClick={() => setEditingField(null)} className="text-[11px] text-zinc-500 hover:text-zinc-300 px-1.5 py-0.5 rounded transition-colors">Cancel</button>
+                      <button
+                        onClick={() => saveField(field)}
+                        className="text-[11px] font-medium text-amber-400 border border-amber-500/40 bg-amber-500/10 hover:border-amber-500/60 px-1.5 py-0.5 rounded transition-colors"
+                      >
+                        Save & Regen
+                      </button>
+                    </div>
+                  )}
+                </div>
+                {/* Accordion body */}
+                {isOpen && (
+                  <div className="px-4 pb-3">
+                    {isEditing ? (
+                      <textarea
+                        value={editingValue}
+                        onChange={(e) => setEditingValue(e.target.value)}
+                        autoFocus
+                        rows={4}
+                        className="w-full px-3 py-2 rounded-lg bg-zinc-950 border border-zinc-700 text-xs text-zinc-300 font-mono leading-relaxed resize-y focus:outline-none focus:border-amber-500/50"
+                      />
+                    ) : (
+                      <div className="pl-5 prose prose-xs max-w-none
+                        [&>p]:text-xs [&>p]:text-zinc-400 [&>p]:mb-1 [&>p]:leading-relaxed
+                        [&>ul]:list-disc [&>ul]:pl-4 [&>ul]:mb-1 [&>ul>li]:text-xs [&>ul>li]:text-zinc-400
+                        [&>ol]:list-decimal [&>ol]:pl-4 [&>ol]:mb-1 [&>ol>li]:text-xs [&>ol>li]:text-zinc-400
+                        [&>strong]:font-semibold [&>strong]:text-zinc-300">
+                        <ReactMarkdown>{(q?.[field] ?? "").replace(/^[•·‣▸] /gm, "- ")}</ReactMarkdown>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
@@ -746,17 +842,7 @@ export default function WorkspacePage() {
     }
   }
 
-  function handleUpdateIdea(newDescription: string) {
-    const proj = projectRef.current;
-    if (!proj) return;
-    const q = proj.questionnaire;
-    const ideaParts = [newDescription];
-    if (q?.userRoles) ideaParts.push(`Users & roles: ${q.userRoles}`);
-    if (q?.accessControl) ideaParts.push(`Access control: ${q.accessControl}`);
-    if (q?.keyWorkflows) ideaParts.push(`Key workflows: ${q.keyWorkflows}`);
-    if (q?.approvals) ideaParts.push(`Approvals: ${q.approvals}`);
-    if (q?.notifications) ideaParts.push(`Notifications: ${q.notifications}`);
-    const updated: Project = { ...proj, description: newDescription, idea: ideaParts.join("\n\n") };
+  function buildAndReplaceProject(updated: Project) {
     setProject(updated);
     projectRef.current = updated;
     sessionStorage.setItem("sdlc_project", JSON.stringify(updated));
@@ -766,6 +852,32 @@ export default function WorkspacePage() {
     streamAccumRef.current = {};
     sessionStorage.removeItem("sdlc_artifacts");
     runGeneration(updated);
+  }
+
+  function rebuildIdea(desc: string, q: Project["questionnaire"]): string {
+    const parts = [desc];
+    if (q?.userRoles) parts.push(`Users & roles: ${q.userRoles}`);
+    if (q?.accessControl) parts.push(`Access control: ${q.accessControl}`);
+    if (q?.keyWorkflows) parts.push(`Key workflows: ${q.keyWorkflows}`);
+    if (q?.approvals) parts.push(`Approvals: ${q.approvals}`);
+    if (q?.notifications) parts.push(`Notifications: ${q.notifications}`);
+    return parts.join("\n\n");
+  }
+
+  function handleUpdateIdea(newDescription: string) {
+    const proj = projectRef.current;
+    if (!proj) return;
+    const updated: Project = { ...proj, description: newDescription, idea: rebuildIdea(newDescription, proj.questionnaire) };
+    buildAndReplaceProject(updated);
+  }
+
+  function handleUpdateQuestionnaire(field: QField, value: string) {
+    const proj = projectRef.current;
+    if (!proj) return;
+    const newQ = { ...proj.questionnaire, [field]: value || undefined };
+    const desc = proj.description ?? proj.idea.split("\n\n")[0];
+    const updated: Project = { ...proj, questionnaire: newQ, idea: rebuildIdea(desc, newQ) };
+    buildAndReplaceProject(updated);
   }
 
   // Streaming refinement — handles NDJSON from /api/feedback
@@ -934,6 +1046,14 @@ export default function WorkspacePage() {
             </p>
           </div>
         </div>
+        {/* Powered by Claude badge */}
+        <span className="flex items-center gap-1.5 text-xs text-zinc-500">
+          Powered by
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" className="text-indigo-400">
+            <path d="M12 1L9.5 8.5H2L8 13L5.5 20.5L12 16L18.5 20.5L16 13L22 8.5H14.5L12 1Z" />
+          </svg>
+          <span className="font-semibold text-zinc-300">Claude</span>
+        </span>
       </header>
 
       {/* Refinement bar */}
@@ -963,7 +1083,7 @@ export default function WorkspacePage() {
 
         {!error && project && (
           <>
-            <IdeaPanel project={project} onUpdateIdea={handleUpdateIdea} />
+            <IdeaPanel project={project} onUpdateIdea={handleUpdateIdea} onUpdateQuestionnaire={handleUpdateQuestionnaire} />
 
             {/* View toggle — in body */}
             <ViewToggle active={activeView} onChange={handleViewChange} />

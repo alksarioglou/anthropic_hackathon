@@ -33,7 +33,7 @@ export function OnboardingNav({
   const progressFraction = (currentIndex + 1) / steps.length;
 
   return (
-    <nav className="relative border-b border-border bg-nav-bg">
+    <nav className="sticky top-0 z-50 border-b border-border bg-nav-bg">
       {/* Progress bar at the very top */}
       <div className="absolute top-0 left-0 right-0 h-[3px] bg-transparent">
         <div

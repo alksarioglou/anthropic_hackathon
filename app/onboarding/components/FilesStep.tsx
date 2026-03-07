@@ -63,7 +63,7 @@ export function FilesStep({ files, onChange, onContinue }: FilesStepProps) {
           <div
             onDrop={handleDrop}
             onDragOver={handleDragOver}
-            className="border-2 border-dashed border-border rounded-xl p-8 text-center cursor-pointer hover:border-primary transition-colors bg-white"
+            className="border-2 border-dashed border-input-border rounded-lg p-8 text-center cursor-pointer hover:border-primary transition-colors"
           >
             <label className="cursor-pointer">
               <input
@@ -91,7 +91,7 @@ export function FilesStep({ files, onChange, onContinue }: FilesStepProps) {
             {files.map((file, index) => (
               <div
                 key={`${file.name}-${index}`}
-                className="flex items-center justify-between rounded-xl border border-border bg-white px-4 py-2"
+                className="flex items-center justify-between rounded-lg border border-border-light bg-background px-4 py-2"
               >
                 <div>
                   <p className="text-sm text-foreground">{file.name}</p>

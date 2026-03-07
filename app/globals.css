@@ -95,8 +95,8 @@ body {
   font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-button { cursor: pointer; }
-button:disabled { cursor: not-allowed; }
+button, [role="button"] { cursor: pointer !important; }
+button:disabled, [role="button"][aria-disabled="true"] { cursor: not-allowed !important; }
 button:not(:disabled):active { transform: scale(0.97); transition: transform 0.1s ease; }
 
 /* ─── General animations ───────────────────────────────────────────────────── */
@@ -116,17 +116,23 @@ button:not(:disabled):active { transform: scale(0.97); transition: transform 0.1
 .animate-card-in  { animation: card-in  0.35s cubic-bezier(0.4, 0, 0.2, 1) both; }
 .animate-modal-in { animation: modal-in 0.22s cubic-bezier(0.4, 0, 0.2, 1) both; }
 
+@keyframes refine-in {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-refine-in { animation: refine-in 0.2s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
 /* ─── Onboarding step transitions ─────────────────────────────────────────── */
 @keyframes step-enter-next {
-  from { opacity: 0; transform: translateY(36px); }
+  from { opacity: 0; transform: translateY(72px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 @keyframes step-enter-prev {
-  from { opacity: 0; transform: translateY(-36px); }
+  from { opacity: 0; transform: translateY(-72px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.step-enter-next { animation: step-enter-next 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-.step-enter-prev { animation: step-enter-prev 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+.step-enter-next { animation: step-enter-next 0.45s cubic-bezier(0.22, 1, 0.36, 1); }
+.step-enter-prev { animation: step-enter-prev 0.45s cubic-bezier(0.22, 1, 0.36, 1); }
 
 /* ─── Markdown content rendering (used in workspace artifact cards) ─────── */
 .md-content { font-size: 0.75rem; line-height: 1.6; color: rgb(161 161 170); }

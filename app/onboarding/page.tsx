@@ -221,7 +221,7 @@ export default function OnboardingPage() {
       />
 
       <main className="flex flex-1 px-4 py-4 sm:px-6 lg:px-8">
-        <div className="w-full rounded-2xl bg-card-bg min-h-[calc(100vh-100px)] flex flex-col justify-center relative px-8 sm:px-16 lg:px-24">
+        <div className="w-full rounded-2xl bg-card-bg min-h-[calc(100vh-100px)] flex flex-col justify-center relative px-8 sm:px-16 lg:px-24 overflow-hidden">
           <div
             key={currentStepIndex}
             className={`flex flex-col items-center w-full flex-1 justify-center ${animDir === "forward" ? "step-enter-next" : "step-enter-prev"}`}

@@ -57,7 +57,7 @@ export function ReviewStep({ payload, onSubmit }: ReviewStepProps) {
         {t("onboarding.review.title")}
       </h2>
 
-      <div className="rounded-xl border border-border bg-white p-6">
+      <div className="rounded-lg border border-border bg-background p-6">
         <ReviewRow
           label={t("onboarding.review.toolIdeaLabel")}
           value={payload.toolDescription || np}

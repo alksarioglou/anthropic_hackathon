@@ -57,7 +57,7 @@ export function ToolIdeaStep({ value, onChange, onContinue }: ToolIdeaStepProps)
             onChange={(e) => onChange(e.target.value)}
             placeholder="Ask anything…"
             rows={6}
-            className="w-full rounded-xl border border-border bg-white p-4 text-foreground placeholder:text-foreground-muted outline-none transition-colors focus:border-input-border-focus resize-none"
+            className="w-full rounded-lg border border-input-border bg-input-bg p-4 text-foreground placeholder:text-foreground-muted outline-none transition-colors focus:border-input-border-focus resize-none"
           />
 
           <div className="mt-8 flex justify-center">
