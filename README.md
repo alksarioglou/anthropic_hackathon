@@ -1,4 +1,4 @@
-# matura — Agentic AI SDLC Planner
+# matura - Agentic AI SDLC Planner
 
 **matura** transforms a rough software idea into a complete, implementation-ready software plan using Agentic AI. Built for the Swiss Life Claude Builders Hackathon.
 
@@ -43,15 +43,10 @@ pnpm install
 # 4. Start Convex backend (in one terminal)
 npx convex dev
 
-# 5. Seed the internal knowledge base (first time only)
-#    This populates the documents table used by the Architecture agent.
-#    Run in the Convex dashboard or via:
-npx convex run seed:run
-
-# 6. Start Next.js dev server (in another terminal)
+# 5. Start Next.js dev server (in another terminal)
 pnpm dev
 
-# 7. Open http://localhost:3000
+# 6. Open http://localhost:3000
 ```
 
 ## Project Structure
@@ -109,4 +104,4 @@ npx convex deploy # Deploy Convex functions to production
 
 ## Team
 
-Built by ALK, Jannis, and Damiano for the Swiss Life Claude Builders Hackathon 2025.
+Built by Alkinoos, Jannis, and Damiano for the Swiss Life Claude Builders Hackathon 2025.
