@@ -8,6 +8,7 @@ import { ARTIFACT_LABELS, BUSINESS_ARTIFACTS, TECH_ARTIFACTS } from "@/types";
 import { ArchGraph } from "@/components/ArchGraph";
 import { ProsePanel } from "@/components/ProsePanel";
 import { TechStackLegend } from "@/components/TechStackLegend";
+import { MaturaLogo } from "@/components/MaturaLogo";
 import type { ArchitectureGraph } from "@/types/architecture";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -75,7 +76,6 @@ function ArtifactCard({
   index?: number;
 }) {
   const isDone = content !== undefined;
-  // streamingText takes priority — during refinement it streams over the existing content
   const isStreaming = streamingText !== undefined;
   const displayText = streamingText ?? content ?? "";
 
@@ -123,26 +123,26 @@ function ArtifactCard({
   }
 
   const borderColor = editMode
-    ? "border-amber-500/50"
+    ? "border-amber-400"
     : showRefine
-      ? "border-indigo-500/50"
-      : "border-zinc-800";
+      ? "border-primary"
+      : "border-border";
 
   return (
     <div
-      className={`group relative rounded-xl border bg-zinc-900 transition-colors animate-card-in ${borderColor}`}
+      className={`group relative rounded-xl border bg-card-bg transition-colors animate-card-in ${borderColor}`}
       style={{ animationDelay: `${index * 80}ms` }}
     >
 
       {/* Card header */}
-      <div className="px-4 py-3 flex items-center justify-between gap-2 border-b border-zinc-800">
+      <div className="px-4 py-3 flex items-center justify-between gap-2 border-b border-border">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="text-sm font-medium text-zinc-200 truncate">
+          <span className="text-sm font-medium text-foreground truncate">
             {ARTIFACT_LABELS[type]}
           </span>
           {isStreaming && (
-            <span className="flex-shrink-0 flex items-center gap-1.5 text-xs text-indigo-400 animate-fade-in">
-              <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
+            <span className="flex-shrink-0 flex items-center gap-1.5 text-xs text-primary animate-fade-in">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
               Claude is writing…
             </span>
           )}
@@ -152,13 +152,13 @@ function ArtifactCard({
           <div className="flex items-center gap-1.5 flex-shrink-0">
             <button
               onClick={() => { setEditText(content!); setEditMode(true); setShowRefine(false); }}
-              className="text-xs text-zinc-500 hover:text-zinc-300 border border-zinc-700 hover:border-zinc-500 px-2 py-0.5 rounded-md transition-colors"
+              className="text-xs text-foreground-muted hover:text-foreground border border-border hover:border-foreground-muted px-2 py-0.5 rounded-md transition-colors"
             >
               Edit
             </button>
             <button
               onClick={() => setExpanded((v) => !v)}
-              className="text-xs text-zinc-600 hover:text-zinc-300 border border-zinc-700 px-2 py-0.5 rounded-md transition-colors"
+              className="text-xs text-foreground-muted hover:text-foreground border border-border px-2 py-0.5 rounded-md transition-colors"
             >
               {expanded ? "↑" : "↓"}
             </button>
@@ -166,7 +166,7 @@ function ArtifactCard({
               <button
                 onClick={onFocus}
                 title="Open full view"
-                className="flex items-center gap-1 text-xs text-zinc-400 hover:text-zinc-100 border border-zinc-700 hover:border-zinc-400 hover:bg-zinc-800 px-2 py-0.5 rounded-md transition-colors"
+                className="flex items-center gap-1 text-xs text-foreground-secondary hover:text-foreground border border-border hover:border-foreground-muted hover:bg-background-secondary px-2 py-0.5 rounded-md transition-colors"
               >
                 <ExpandIcon className="w-3 h-3" />
                 <span>Focus</span>
@@ -179,13 +179,13 @@ function ArtifactCard({
           <div className="flex items-center gap-1.5 flex-shrink-0">
             <button
               onClick={() => setEditMode(false)}
-              className="text-xs text-zinc-500 hover:text-zinc-300 px-2 py-0.5 rounded-md transition-colors"
+              className="text-xs text-foreground-muted hover:text-foreground px-2 py-0.5 rounded-md transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={() => { onDirectSave(type, editText); setEditMode(false); }}
-              className="text-xs font-medium text-amber-400 border border-amber-500/40 bg-amber-500/10 hover:border-amber-500/70 px-2 py-0.5 rounded-md transition-colors"
+              className="text-xs font-medium text-amber-700 border border-amber-400 bg-amber-50 hover:border-amber-500 px-2 py-0.5 rounded-md transition-colors"
             >
               Save
             </button>
@@ -200,7 +200,7 @@ function ArtifactCard({
             {[100, 88, 72, 52].map((w, i) => (
               <div
                 key={i}
-                className="h-1.5 rounded-full bg-zinc-800 animate-pulse"
+                className="h-1.5 rounded-full bg-background-tertiary animate-pulse"
                 style={{ width: `${w}%`, animationDelay: `${i * 0.12}s` }}
               />
             ))}
@@ -221,10 +221,10 @@ function ArtifactCard({
                 className={`
                   absolute top-2 right-2 z-10
                   w-7 h-7 rounded-full border flex items-center justify-center
-                  shadow-lg transition-all duration-150
+                  shadow-sm transition-all duration-150
                   ${showRefine
-                    ? "opacity-100 scale-100 border-indigo-500 bg-indigo-600 text-white"
-                    : "opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 border-zinc-600 bg-zinc-800/90 text-zinc-300 hover:border-indigo-500 hover:bg-indigo-600 hover:text-white"
+                    ? "opacity-100 scale-100 border-primary bg-primary text-white"
+                    : "opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 border-border bg-card-bg text-foreground-muted hover:border-primary hover:bg-primary hover:text-white"
                   }
                 `}
               >
@@ -237,9 +237,9 @@ function ArtifactCard({
               className={`px-4 py-3 overflow-y-auto transition-all ${expanded ? "max-h-[32rem]" : "max-h-44"}`}
             >
               {isStreaming ? (
-                <pre className="text-xs text-zinc-400 whitespace-pre-wrap font-mono leading-relaxed">
+                <pre className="text-xs text-foreground-secondary whitespace-pre-wrap font-mono leading-relaxed">
                   {displayText}
-                  <span className="inline-block w-0.5 h-3 bg-indigo-400 animate-pulse align-middle ml-0.5" />
+                  <span className="inline-block w-0.5 h-3 bg-primary animate-pulse align-middle ml-0.5" />
                 </pre>
               ) : (
                 <div className="md-content">
@@ -253,7 +253,7 @@ function ArtifactCard({
             <div className="px-4 pb-2">
               <button
                 onClick={() => setExpanded(true)}
-                className="text-xs text-zinc-600 hover:text-zinc-400 underline underline-offset-2"
+                className="text-xs text-foreground-muted hover:text-foreground underline underline-offset-2"
               >
                 Show more
               </button>
@@ -267,14 +267,14 @@ function ArtifactCard({
         <textarea
           value={editText}
           onChange={(e) => setEditText(e.target.value)}
-          className="w-full px-4 py-3 bg-zinc-950 text-xs text-zinc-300 font-mono leading-relaxed resize-none focus:outline-none rounded-b-xl"
+          className="w-full px-4 py-3 bg-background text-xs text-foreground font-mono leading-relaxed resize-none focus:outline-none rounded-b-xl"
           rows={14}
         />
       )}
 
       {/* Inline AI refinement form */}
       {(isDone || isStreaming) && showRefine && (
-        <div className="px-4 py-3 border-t border-zinc-800 bg-zinc-950 space-y-2 rounded-b-xl">
+        <div className="px-4 py-3 border-t border-border bg-background space-y-2 rounded-b-xl">
           <textarea
             ref={refineRef}
             value={refinement}
@@ -282,22 +282,22 @@ function ArtifactCard({
             onKeyDown={handleRefineKeyDown}
             placeholder={`What would you like to change? (⌘↵ to apply)`}
             rows={3}
-            className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-zinc-200 text-xs placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500 resize-none"
+            className="w-full px-3 py-2 rounded-lg bg-card-bg border border-input-border text-foreground text-xs placeholder:text-foreground-muted focus:outline-none focus:border-input-border-focus resize-none"
           />
-          {refineError && <p className="text-xs text-red-400">{refineError}</p>}
+          {refineError && <p className="text-xs text-error">{refineError}</p>}
           <div className="flex items-center justify-between gap-2">
-            <p className="text-xs text-zinc-600">Propagates to related artifacts automatically.</p>
+            <p className="text-xs text-foreground-muted">Propagates to related artifacts automatically.</p>
             <div className="flex gap-2">
               <button
                 onClick={() => { setShowRefine(false); setRefinement(""); setRefineError(null); }}
-                className="text-xs text-zinc-500 hover:text-zinc-300 px-3 py-1.5 rounded-lg transition-colors"
+                className="text-xs text-foreground-muted hover:text-foreground px-3 py-1.5 rounded-lg transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={submitRefinement}
                 disabled={isRefining || !refinement.trim()}
-                className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-800 disabled:text-zinc-600 text-white transition-colors"
+                className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover disabled:bg-background-tertiary disabled:text-foreground-muted text-white transition-colors"
               >
                 {isRefining ? "Applying…" : "Apply"}
               </button>
@@ -365,16 +365,16 @@ function ArtifactModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/70 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className={`relative w-full max-w-3xl max-h-[90vh] flex flex-col rounded-2xl border bg-zinc-900 shadow-2xl overflow-hidden transition-colors animate-modal-in ${editMode ? "border-amber-500/50" : showRefine ? "border-indigo-500/50" : "border-zinc-700"}`}>
+      <div className={`relative w-full max-w-3xl max-h-[90vh] flex flex-col rounded-2xl border bg-background shadow-2xl overflow-hidden transition-colors animate-modal-in ${editMode ? "border-amber-400" : showRefine ? "border-primary" : "border-border"}`}>
 
         {/* Modal header */}
-        <div className="px-5 py-3.5 flex items-center justify-between gap-2 border-b border-zinc-800 flex-shrink-0">
+        <div className="px-5 py-3.5 flex items-center justify-between gap-2 border-b border-border flex-shrink-0">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-zinc-200">{ARTIFACT_LABELS[type]}</span>
-            {isStreaming && <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />}
+            <span className="text-sm font-semibold text-foreground">{ARTIFACT_LABELS[type]}</span>
+            {isStreaming && <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />}
           </div>
           <div className="flex items-center gap-1.5">
             {!editMode && !isStreaming && content !== undefined && (
@@ -382,13 +382,13 @@ function ArtifactModal({
                 <button
                   onClick={() => { setShowRefine((v) => !v); setRefineError(null); }}
                   title="Refine with AI"
-                  className={`p-1.5 rounded-lg border transition-colors ${showRefine ? "border-indigo-500 bg-indigo-600 text-white" : "border-zinc-700 text-zinc-400 hover:border-indigo-500 hover:bg-indigo-600 hover:text-white"}`}
+                  className={`p-1.5 rounded-lg border transition-colors ${showRefine ? "border-primary bg-primary text-white" : "border-border text-foreground-secondary hover:border-primary hover:bg-primary hover:text-white"}`}
                 >
                   <SparklesIcon className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => { setEditText(content!); setEditMode(true); setShowRefine(false); }}
-                  className="text-xs text-zinc-500 hover:text-zinc-300 border border-zinc-700 hover:border-zinc-500 px-2 py-1 rounded-lg transition-colors"
+                  className="text-xs text-foreground-muted hover:text-foreground border border-border hover:border-foreground-muted px-2 py-1 rounded-lg transition-colors"
                 >
                   Edit
                 </button>
@@ -396,16 +396,16 @@ function ArtifactModal({
             )}
             {editMode && (
               <>
-                <button onClick={() => setEditMode(false)} className="text-xs text-zinc-500 hover:text-zinc-300 px-2 py-1 rounded-lg transition-colors">Cancel</button>
+                <button onClick={() => setEditMode(false)} className="text-xs text-foreground-muted hover:text-foreground px-2 py-1 rounded-lg transition-colors">Cancel</button>
                 <button
                   onClick={() => { onDirectSave(type, editText); setEditMode(false); }}
-                  className="text-xs font-medium text-amber-400 border border-amber-500/40 bg-amber-500/10 hover:border-amber-500/70 px-2 py-1 rounded-lg transition-colors"
+                  className="text-xs font-medium text-amber-700 border border-amber-400 bg-amber-50 hover:border-amber-500 px-2 py-1 rounded-lg transition-colors"
                 >
                   Save
                 </button>
               </>
             )}
-            <button onClick={onClose} title="Close (Esc)" className="ml-1 p-1.5 rounded-lg border border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:border-zinc-500 transition-colors">
+            <button onClick={onClose} title="Close (Esc)" className="ml-1 p-1.5 rounded-lg border border-border text-foreground-muted hover:text-foreground hover:border-foreground-muted transition-colors">
               <CollapseIcon className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -417,14 +417,14 @@ function ArtifactModal({
             <textarea
               value={editText}
               onChange={(e) => setEditText(e.target.value)}
-              className="w-full h-full min-h-[60vh] px-5 py-4 bg-zinc-950 text-sm text-zinc-300 font-mono leading-relaxed resize-none focus:outline-none"
+              className="w-full h-full min-h-[60vh] px-5 py-4 bg-card-bg text-sm text-foreground font-mono leading-relaxed resize-none focus:outline-none"
             />
           ) : (
             <div className="px-5 py-4">
               {isStreaming ? (
-                <pre className="text-sm text-zinc-400 whitespace-pre-wrap font-mono leading-relaxed">
+                <pre className="text-sm text-foreground-secondary whitespace-pre-wrap font-mono leading-relaxed">
                   {displayText}
-                  <span className="inline-block w-0.5 h-4 bg-indigo-400 animate-pulse align-middle ml-0.5" />
+                  <span className="inline-block w-0.5 h-4 bg-primary animate-pulse align-middle ml-0.5" />
                 </pre>
               ) : (
                 <div className="md-content !text-sm [&_.md-content]:text-sm">
@@ -437,7 +437,7 @@ function ArtifactModal({
 
         {/* Refinement form */}
         {!editMode && showRefine && (
-          <div className="px-5 py-3.5 border-t border-zinc-800 bg-zinc-950 space-y-2 flex-shrink-0 animate-refine-in">
+          <div className="px-5 py-3.5 border-t border-border bg-card-bg space-y-2 flex-shrink-0 animate-refine-in">
             <textarea
               ref={refineRef}
               value={refinement}
@@ -445,17 +445,17 @@ function ArtifactModal({
               onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); submitRefinement(); } }}
               placeholder="What would you like to change? (⌘↵ to apply)"
               rows={3}
-              className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-zinc-200 text-xs placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500 resize-none"
+              className="w-full px-3 py-2 rounded-lg bg-background border border-input-border text-foreground text-xs placeholder:text-foreground-muted focus:outline-none focus:border-input-border-focus resize-none"
             />
-            {refineError && <p className="text-xs text-red-400">{refineError}</p>}
+            {refineError && <p className="text-xs text-error">{refineError}</p>}
             <div className="flex items-center justify-between gap-2">
-              <p className="text-xs text-zinc-600">Propagates to related artifacts automatically.</p>
+              <p className="text-xs text-foreground-muted">Propagates to related artifacts automatically.</p>
               <div className="flex gap-2">
-                <button onClick={() => { setShowRefine(false); setRefinement(""); setRefineError(null); }} className="text-xs text-zinc-500 hover:text-zinc-300 px-3 py-1.5 rounded-lg transition-colors">Cancel</button>
+                <button onClick={() => { setShowRefine(false); setRefinement(""); setRefineError(null); }} className="text-xs text-foreground-muted hover:text-foreground px-3 py-1.5 rounded-lg transition-colors">Cancel</button>
                 <button
                   onClick={submitRefinement}
                   disabled={isRefining || !refinement.trim()}
-                  className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-800 disabled:text-zinc-600 text-white transition-colors"
+                  className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover disabled:bg-background-tertiary disabled:text-foreground-muted text-white transition-colors"
                 >
                   {isRefining ? "Applying…" : "Apply"}
                 </button>
@@ -496,7 +496,6 @@ function IdeaPanel({
   const [isRefining, setIsRefining] = useState(false);
   const refineRef = useRef<HTMLTextAreaElement>(null);
 
-  // Accordion state
   const [openFields, setOpenFields] = useState<Set<QField>>(new Set());
   const [editingField, setEditingField] = useState<QField | null>(null);
   const [editingValue, setEditingValue] = useState("");
@@ -561,22 +560,22 @@ function IdeaPanel({
   }
 
   return (
-    <div className={`mb-6 rounded-xl bg-zinc-900 border animate-fade-in overflow-hidden transition-colors ${editMode ? "border-amber-500/50" : showRefine ? "border-indigo-500/50" : "border-zinc-800"}`}>
+    <div className={`mb-4 rounded-xl bg-background border animate-fade-in overflow-hidden transition-colors ${editMode ? "border-amber-400" : showRefine ? "border-primary" : "border-border"}`}>
       {/* Header */}
-      <div className="px-4 py-2.5 flex items-center justify-between border-b border-zinc-800">
-        <p className="text-xs font-medium text-zinc-500">Project idea</p>
+      <div className="px-4 py-2.5 flex items-center justify-between border-b border-border">
+        <p className="text-xs font-medium text-foreground-muted">Project idea</p>
         {!editMode && !isRefining && (
           <div className="flex items-center gap-1.5">
             <button
               onClick={() => { setShowRefine((v) => !v); }}
               title="Refine with AI"
-              className={`p-1.5 rounded-lg border transition-colors ${showRefine ? "border-indigo-500 bg-indigo-600 text-white" : "border-zinc-700 text-zinc-400 hover:border-indigo-500 hover:bg-indigo-600 hover:text-white"}`}
+              className={`p-1.5 rounded-lg border transition-colors ${showRefine ? "border-primary bg-primary text-white" : "border-border text-foreground-secondary hover:border-primary hover:bg-primary hover:text-white"}`}
             >
               <SparklesIcon className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={() => { setEditText(description); setEditMode(true); setShowRefine(false); }}
-              className="text-xs text-zinc-500 hover:text-zinc-300 border border-zinc-700 hover:border-zinc-500 px-2 py-0.5 rounded-md transition-colors"
+              className="text-xs text-foreground-muted hover:text-foreground border border-border hover:border-foreground-muted px-2 py-0.5 rounded-md transition-colors"
             >
               Edit
             </button>
@@ -584,18 +583,18 @@ function IdeaPanel({
         )}
         {editMode && (
           <div className="flex gap-1.5">
-            <button onClick={() => setEditMode(false)} className="text-xs text-zinc-500 hover:text-zinc-300 px-2 py-0.5 rounded-md transition-colors">Cancel</button>
+            <button onClick={() => setEditMode(false)} className="text-xs text-foreground-muted hover:text-foreground px-2 py-0.5 rounded-md transition-colors">Cancel</button>
             <button
               onClick={() => { onUpdateIdea(editText); setEditMode(false); }}
-              className="text-xs font-medium text-amber-400 border border-amber-500/40 bg-amber-500/10 hover:border-amber-500/70 px-2 py-0.5 rounded-md transition-colors"
+              className="text-xs font-medium text-amber-700 border border-amber-400 bg-amber-50 hover:border-amber-500 px-2 py-0.5 rounded-md transition-colors"
             >
               Save & Regenerate
             </button>
           </div>
         )}
         {isRefining && (
-          <span className="text-xs text-indigo-400 flex items-center gap-1.5 animate-fade-in">
-            <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
+          <span className="text-xs text-primary flex items-center gap-1.5 animate-fade-in">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
             Refining…
           </span>
         )}
@@ -608,17 +607,17 @@ function IdeaPanel({
           onChange={(e) => setEditText(e.target.value)}
           rows={4}
           autoFocus
-          className="w-full px-4 py-3 bg-zinc-950 text-sm text-zinc-300 font-mono leading-relaxed resize-none focus:outline-none"
+          className="w-full px-4 py-3 bg-card-bg text-sm text-foreground font-mono leading-relaxed resize-none focus:outline-none"
         />
       ) : (
         <div className="px-4 py-3">
-          <p className="text-sm text-zinc-300 whitespace-pre-line max-h-24 overflow-y-auto leading-relaxed">{description}</p>
+          <p className="text-sm text-foreground whitespace-pre-line max-h-24 overflow-y-auto leading-relaxed">{description}</p>
         </div>
       )}
 
       {/* AI refine input */}
       {showRefine && (
-        <div className="px-4 py-3 border-t border-zinc-800 bg-zinc-950 space-y-2 animate-refine-in">
+        <div className="px-4 py-3 border-t border-border bg-card-bg space-y-2 animate-refine-in">
           <textarea
             ref={refineRef}
             value={refinement}
@@ -626,14 +625,14 @@ function IdeaPanel({
             onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); applyRefinement(); } }}
             placeholder="How should the idea be refined? (⌘↵ to apply)"
             rows={2}
-            className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-zinc-200 text-xs placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500 resize-none"
+            className="w-full px-3 py-2 rounded-lg bg-background border border-input-border text-foreground text-xs placeholder:text-foreground-muted focus:outline-none focus:border-input-border-focus resize-none"
           />
           <div className="flex justify-end gap-2">
-            <button onClick={() => { setShowRefine(false); setRefinement(""); }} className="text-xs text-zinc-500 hover:text-zinc-300 px-3 py-1.5 rounded-lg transition-colors">Cancel</button>
+            <button onClick={() => { setShowRefine(false); setRefinement(""); }} className="text-xs text-foreground-muted hover:text-foreground px-3 py-1.5 rounded-lg transition-colors">Cancel</button>
             <button
               onClick={applyRefinement}
               disabled={!refinement.trim()}
-              className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-800 disabled:text-zinc-600 text-white transition-colors"
+              className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover disabled:bg-background-tertiary disabled:text-foreground-muted text-white transition-colors"
             >
               Refine & Regenerate
             </button>
@@ -643,40 +642,40 @@ function IdeaPanel({
 
       {/* Questionnaire accordion */}
       {!editMode && hasQuestionnaire && (
-        <div className="border-t border-zinc-800/60">
+        <div className="border-t border-border/60">
           {Q_ORDER.filter((f) => q?.[f]).map((field) => {
             const isOpen = openFields.has(field);
             const isEditing = editingField === field;
             return (
-              <div key={field} className="border-b border-zinc-800/40 last:border-b-0">
+              <div key={field} className="border-b border-border/40 last:border-b-0">
                 {/* Accordion header */}
-                <div className="flex items-center justify-between px-4 py-2 hover:bg-zinc-800/30 transition-colors">
+                <div className="flex items-center justify-between px-4 py-2 hover:bg-background-secondary transition-colors">
                   <button
                     onClick={() => toggleField(field)}
                     className="flex items-center gap-2 flex-1 text-left"
                   >
                     <svg
-                      className={`w-3 h-3 text-zinc-500 transition-transform duration-200 ${isOpen ? "rotate-90" : ""}`}
+                      className={`w-3 h-3 text-foreground-muted transition-transform duration-200 ${isOpen ? "rotate-90" : ""}`}
                       viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
                     >
                       <path d="M4 2L8 6L4 10" />
                     </svg>
-                    <span className="text-xs font-medium text-zinc-400">{Q_LABELS[field]}</span>
+                    <span className="text-xs font-medium text-foreground-secondary">{Q_LABELS[field]}</span>
                   </button>
                   {!isEditing && (
                     <button
                       onClick={() => { startEditField(field); if (!isOpen) toggleField(field); }}
-                      className="text-[11px] text-zinc-600 hover:text-zinc-300 border border-zinc-700/50 hover:border-zinc-500 px-1.5 py-0.5 rounded transition-colors"
+                      className="text-[11px] text-foreground-muted hover:text-foreground border border-border/50 hover:border-border px-1.5 py-0.5 rounded transition-colors"
                     >
                       Edit
                     </button>
                   )}
                   {isEditing && (
                     <div className="flex gap-1">
-                      <button onClick={() => setEditingField(null)} className="text-[11px] text-zinc-500 hover:text-zinc-300 px-1.5 py-0.5 rounded transition-colors">Cancel</button>
+                      <button onClick={() => setEditingField(null)} className="text-[11px] text-foreground-muted hover:text-foreground px-1.5 py-0.5 rounded transition-colors">Cancel</button>
                       <button
                         onClick={() => saveField(field)}
-                        className="text-[11px] font-medium text-amber-400 border border-amber-500/40 bg-amber-500/10 hover:border-amber-500/60 px-1.5 py-0.5 rounded transition-colors"
+                        className="text-[11px] font-medium text-amber-700 border border-amber-400 bg-amber-50 hover:border-amber-500 px-1.5 py-0.5 rounded transition-colors"
                       >
                         Save & Regen
                       </button>
@@ -692,14 +691,14 @@ function IdeaPanel({
                         onChange={(e) => setEditingValue(e.target.value)}
                         autoFocus
                         rows={4}
-                        className="w-full px-3 py-2 rounded-lg bg-zinc-950 border border-zinc-700 text-xs text-zinc-300 font-mono leading-relaxed resize-y focus:outline-none focus:border-amber-500/50"
+                        className="w-full px-3 py-2 rounded-lg bg-background border border-input-border text-xs text-foreground font-mono leading-relaxed resize-y focus:outline-none focus:border-amber-400"
                       />
                     ) : (
                       <div className="pl-5 prose prose-xs max-w-none
-                        [&>p]:text-xs [&>p]:text-zinc-400 [&>p]:mb-1 [&>p]:leading-relaxed
-                        [&>ul]:list-disc [&>ul]:pl-4 [&>ul]:mb-1 [&>ul>li]:text-xs [&>ul>li]:text-zinc-400
-                        [&>ol]:list-decimal [&>ol]:pl-4 [&>ol]:mb-1 [&>ol>li]:text-xs [&>ol>li]:text-zinc-400
-                        [&>strong]:font-semibold [&>strong]:text-zinc-300">
+                        [&>p]:text-xs [&>p]:text-foreground-secondary [&>p]:mb-1 [&>p]:leading-relaxed
+                        [&>ul]:list-disc [&>ul]:pl-4 [&>ul]:mb-1 [&>ul>li]:text-xs [&>ul>li]:text-foreground-secondary
+                        [&>ol]:list-decimal [&>ol]:pl-4 [&>ol]:mb-1 [&>ol>li]:text-xs [&>ol>li]:text-foreground-secondary
+                        [&>strong]:font-semibold [&>strong]:text-foreground">
                         <ReactMarkdown>{(q?.[field] ?? "").replace(/^[•·‣▸] /gm, "- ")}</ReactMarkdown>
                       </div>
                     )}
@@ -725,16 +724,17 @@ function ViewToggle({
 }) {
   const labels: Record<string, string> = { business: "Business", technical: "Technical", architecture: "Architecture" };
   return (
-    <div className="flex items-center justify-center mb-6">
-      <div className="relative flex items-center bg-zinc-900 border border-zinc-800 rounded-xl p-1 gap-1">
+    <div className="flex flex-col gap-1">
+      <p className="text-xs font-medium text-foreground-muted mb-1">View</p>
+      <div className="flex flex-col gap-1">
         {(["business", "technical", "architecture"] as const).map((v) => (
           <button
             key={v}
             onClick={() => onChange(v)}
-            className={`relative px-5 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
+            className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
               active === v
-                ? "bg-zinc-700 text-zinc-100 shadow-sm"
-                : "text-zinc-500 hover:text-zinc-300"
+                ? "bg-primary text-white shadow-sm"
+                : "text-foreground-muted hover:text-foreground hover:bg-background-secondary"
             }`}
           >
             {labels[v]}
@@ -918,7 +918,6 @@ export default function WorkspacePage() {
         }
 
         if (parsed.event === "impact") {
-          // Pre-fill streaming state with existing content so cards show something while updating
           const affected = parsed.affectedArtifacts as ArtifactType[];
           setStreamingContent((prev) => {
             const next = { ...prev };
@@ -939,7 +938,6 @@ export default function WorkspacePage() {
         if (parsed.event === "artifact_done") {
           const t = parsed.artifactType as ArtifactType;
           const final = parsed.content as string;
-          // Move from streaming → settled
           setArtifacts((prev) => {
             const merged = { ...prev, [t]: final };
             artifactsRef.current = merged;
@@ -1029,114 +1027,156 @@ export default function WorkspacePage() {
   const artifactTypes = activeView === "business" ? BUSINESS_ARTIFACTS : TECH_ARTIFACTS;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col">
-      {/* Header */}
-      <header className="border-b border-zinc-800 px-6 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <button onClick={() => router.push("/")}>
-            <img src="/logo-light.svg" alt="matura" className="h-6" />
-          </button>
-          <div>
-            <p className="text-sm font-medium text-zinc-100 leading-tight">
-              {project?.name ?? "Loading…"}
-            </p>
-            <p className="text-xs text-zinc-500 leading-tight">
-              {project?.mode === "external" ? "External" : "Internal"} mode
-              {isGenerating && <span className="ml-2 text-indigo-400">· Generating…</span>}
-            </p>
+    <div className="flex flex-col h-screen bg-background text-foreground">
+      {/* Header — consistent with OnboardingNav */}
+      <header className="sticky top-0 z-50 shrink-0 border-b border-border bg-nav-bg">
+        <div className="flex items-center h-14 px-4 sm:px-6 justify-between">
+          <div className="flex items-center gap-3">
+            <button onClick={() => router.push("/")}>
+              <MaturaLogo className="h-7" />
+            </button>
+            {project && (
+              <>
+                <div className="h-5 w-px bg-border" />
+                <div>
+                  <p className="text-sm font-semibold text-foreground leading-tight">
+                    {project.name}
+                  </p>
+                  <p className="text-xs text-foreground-muted leading-tight flex items-center gap-1.5">
+                    {project.mode === "external" ? "External" : "Internal"} mode
+                    {isGenerating && (
+                      <>
+                        <span className="text-foreground-muted">·</span>
+                        <span className="text-primary flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                          Generating…
+                        </span>
+                      </>
+                    )}
+                  </p>
+                </div>
+              </>
+            )}
+          </div>
+
+          <div className="flex items-center gap-4">
+            {refinementCount > 0 && (
+              <span className="flex items-center gap-1.5 text-xs text-success bg-success/10 border border-success/20 px-2.5 py-1 rounded-full">
+                <span className="w-1.5 h-1.5 rounded-full bg-success" />
+                {refinementCount} refinement{refinementCount !== 1 ? "s" : ""} applied
+              </span>
+            )}
+            <span className="flex items-center gap-1.5 text-xs text-foreground-muted">
+              Powered by
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" className="text-primary">
+                <path d="M12 1L9.5 8.5H2L8 13L5.5 20.5L12 16L18.5 20.5L16 13L22 8.5H14.5L12 1Z" />
+              </svg>
+              <span className="font-semibold text-foreground">Claude</span>
+            </span>
           </div>
         </div>
-        {/* Powered by Claude badge */}
-        <span className="flex items-center gap-1.5 text-xs text-zinc-500">
-          Powered by
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" className="text-indigo-400">
-            <path d="M12 1L9.5 8.5H2L8 13L5.5 20.5L12 16L18.5 20.5L16 13L22 8.5H14.5L12 1Z" />
-          </svg>
-          <span className="font-semibold text-zinc-300">Claude</span>
-        </span>
       </header>
 
-      {/* Refinement bar */}
-      {refinementCount > 0 && (
-        <div className="px-6 py-2 bg-emerald-500/5 border-b border-emerald-500/20 text-xs text-emerald-400 flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-          {refinementCount} refinement{refinementCount !== 1 ? "s" : ""} applied — artifacts kept in sync
-        </div>
-      )}
-
-      <main className="flex-1 px-6 py-6 max-w-5xl mx-auto w-full">
-        {error && (
-          <div className="flex flex-col items-center justify-center h-64 gap-3 text-center">
-            <p className="text-sm text-red-400">Generation failed</p>
-            <p className="text-xs text-zinc-500">
-              {error.includes("rate_limit")
-                ? "API rate limit reached — please wait a moment and try again."
-                : error.includes("API key") || error.includes("auth")
-                  ? "Invalid API key. Check ANTHROPIC_API_KEY in .env.local."
-                  : "Something went wrong. Please try again."}
+      {/* Body: sidebar + main */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left sidebar */}
+        <aside className="w-72 shrink-0 flex flex-col border-r border-border overflow-y-auto">
+          {/* Branded project header */}
+          <div className="bg-primary px-4 py-4 shrink-0">
+            <p className="text-[11px] font-medium text-white/70 uppercase tracking-wide mb-1">Project workspace</p>
+            <p className="text-sm font-semibold text-white leading-snug line-clamp-2">
+              {project?.name ?? "Loading…"}
             </p>
-            <button onClick={() => router.push("/")} className="text-xs text-indigo-400 underline">
-              Start over
-            </button>
+            <span className="mt-2 inline-flex items-center gap-1 text-[11px] text-white/80 bg-white/15 px-2 py-0.5 rounded-full">
+              {project?.mode === "external" ? "External" : "Internal"} mode
+            </span>
           </div>
-        )}
 
-        {!error && project && (
-          <>
-            <IdeaPanel project={project} onUpdateIdea={handleUpdateIdea} onUpdateQuestionnaire={handleUpdateQuestionnaire} />
+          {/* Sidebar content */}
+          <div className="flex-1 p-4 flex flex-col gap-4 bg-background-secondary">
+            {project && (
+              <>
+                <IdeaPanel
+                  project={project}
+                  onUpdateIdea={handleUpdateIdea}
+                  onUpdateQuestionnaire={handleUpdateQuestionnaire}
+                />
+                <ViewToggle active={activeView} onChange={handleViewChange} />
+              </>
+            )}
+          </div>
+        </aside>
 
-            {/* View toggle — in body */}
-            <ViewToggle active={activeView} onChange={handleViewChange} />
+        {/* Main content */}
+        <main className="flex-1 overflow-y-auto bg-background">
+          {error && (
+            <div className="flex flex-col items-center justify-center h-64 gap-3 text-center px-6">
+              <p className="text-sm text-error">Generation failed</p>
+              <p className="text-xs text-foreground-muted">
+                {error.includes("rate_limit")
+                  ? "API rate limit reached — please wait a moment and try again."
+                  : error.includes("API key") || error.includes("auth")
+                    ? "Invalid API key. Check ANTHROPIC_API_KEY in .env.local."
+                    : "Something went wrong. Please try again."}
+              </p>
+              <button onClick={() => router.push("/")} className="text-xs text-primary underline">
+                Start over
+              </button>
+            </div>
+          )}
 
-            {/* Architecture view */}
-            {activeView === "architecture" && (
-              <div className="flex gap-6 h-[70vh] rounded-xl overflow-hidden border border-zinc-800">
-                <div className="flex-[3] min-w-0">
-                  <ArchGraph graph={archGraph} />
+          {!error && (
+            <div className="p-6">
+              {/* Architecture view */}
+              {activeView === "architecture" && (
+                <div className="flex gap-6 h-[calc(100vh-10rem)] rounded-xl overflow-hidden border border-border">
+                  <div className="flex-[3] min-w-0">
+                    <ArchGraph graph={archGraph} />
+                  </div>
+                  <div className="flex-[2] overflow-y-auto p-5 bg-card-bg space-y-5">
+                    {archGraph && <TechStackLegend graph={archGraph} />}
+                    <ProsePanel
+                      statusMessages={archStatusMessages}
+                      prose={archProse}
+                      isStreaming={archPhase === "streaming"}
+                    />
+                  </div>
                 </div>
-                <div className="flex-[2] overflow-y-auto p-5 bg-zinc-900 space-y-5">
-                  {archGraph && <TechStackLegend graph={archGraph} />}
-                  <ProsePanel
-                    statusMessages={archStatusMessages}
-                    prose={archProse}
-                    isStreaming={archPhase === "streaming"}
-                  />
+              )}
+
+              {/* Artifacts grid (business / technical) */}
+              {activeView !== "architecture" && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {artifactTypes.map((type, i) => (
+                    <ArtifactCard
+                      key={type}
+                      type={type}
+                      index={i}
+                      content={artifacts[type]}
+                      streamingText={streamingContent[type]}
+                      onStartRefinement={handleStartRefinement}
+                      onDirectSave={handleDirectSave}
+                      onFocus={() => setFocusedType(type)}
+                    />
+                  ))}
                 </div>
-              </div>
-            )}
+              )}
+            </div>
+          )}
+        </main>
+      </div>
 
-            {/* Artifacts grid (business / technical) */}
-            {activeView !== "architecture" && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {artifactTypes.map((type, i) => (
-                  <ArtifactCard
-                    key={type}
-                    type={type}
-                    index={i}
-                    content={artifacts[type]}
-                    streamingText={streamingContent[type]}
-                    onStartRefinement={handleStartRefinement}
-                    onDirectSave={handleDirectSave}
-                    onFocus={() => setFocusedType(type)}
-                  />
-                ))}
-              </div>
-            )}
-
-            {/* Focus modal */}
-            {focusedType && (
-              <ArtifactModal
-                type={focusedType}
-                content={artifacts[focusedType]}
-                streamingText={streamingContent[focusedType]}
-                onStartRefinement={handleStartRefinement}
-                onDirectSave={handleDirectSave}
-                onClose={() => setFocusedType(null)}
-              />
-            )}
-          </>
-        )}
-      </main>
+      {/* Focus modal */}
+      {focusedType && (
+        <ArtifactModal
+          type={focusedType}
+          content={artifacts[focusedType]}
+          streamingText={streamingContent[focusedType]}
+          onStartRefinement={handleStartRefinement}
+          onDirectSave={handleDirectSave}
+          onClose={() => setFocusedType(null)}
+        />
+      )}
     </div>
   );
 }
