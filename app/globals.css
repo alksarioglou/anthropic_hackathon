@@ -1,57 +1,110 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ============================================================
+   Theme CSS Variables - derived from lib/design-tokens.ts
+   Switch themes via data-theme attribute on <html>
+   ============================================================ */
+
+:root,
+[data-theme="light"] {
+  --background: #FFFFFF;
+  --background-secondary: #F5F5F5;
+  --background-tertiary: #ECECEC;
+  --foreground: #1D1D1B;
+  --foreground-secondary: #737373;
+  --foreground-muted: #A6A6A6;
+  --primary: #E2001A;
+  --primary-hover: #C80017;
+  --primary-foreground: #FFFFFF;
+  --accent: #0077CC;
+  --accent-hover: #0066B3;
+  --accent-foreground: #FFFFFF;
+  --border: #D9D9D9;
+  --border-light: #ECECEC;
+  --input-bg: #FFFFFF;
+  --input-border: #BFBFBF;
+  --input-border-focus: #E2001A;
+  --card-bg: #F5F5F5;
+  --nav-bg: #FFFFFF;
+  --success: #2E7D32;
+  --error: #D32F2F;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-full: 9999px;
+}
+
+[data-theme="dark"] {
+  --background: #141413;
+  --background-secondary: #1D1D1B;
+  --background-tertiary: #404040;
+  --foreground: #F5F5F5;
+  --foreground-secondary: #BFBFBF;
+  --foreground-muted: #8C8C8C;
+  --primary: #EF3750;
+  --primary-hover: #F35F72;
+  --primary-foreground: #FFFFFF;
+  --accent: #379FEB;
+  --accent-hover: #5FB2F0;
+  --accent-foreground: #FFFFFF;
+  --border: #595959;
+  --border-light: #404040;
+  --input-bg: #1D1D1B;
+  --input-border: #737373;
+  --input-border-focus: #EF3750;
+  --card-bg: #1D1D1B;
+  --nav-bg: #141413;
+  --success: #66BB6A;
+  --error: #EF5350;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.2);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3);
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-background-secondary: var(--background-secondary);
+  --color-background-tertiary: var(--background-tertiary);
   --color-foreground: var(--foreground);
+  --color-foreground-secondary: var(--foreground-secondary);
+  --color-foreground-muted: var(--foreground-muted);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-border-light: var(--border-light);
+  --color-input-bg: var(--input-bg);
+  --color-input-border: var(--input-border);
+  --color-input-border-focus: var(--input-border-focus);
+  --color-card-bg: var(--card-bg);
+  --color-nav-bg: var(--nav-bg);
+  --color-success: var(--success);
+  --color-error: var(--error);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-/* Markdown rendered content inside artifact cards */
+/* ─── Markdown content rendering (used in workspace artifact cards) ─────── */
 .md-content { font-size: 0.75rem; line-height: 1.6; color: rgb(161 161 170); }
-.md-content h1, .md-content h2, .md-content h3, .md-content h4 {
-  font-weight: 600; color: rgb(212 212 216); margin-top: 0.85em; margin-bottom: 0.2em;
-}
-.md-content h1 { font-size: 0.875rem; }
-.md-content h2 { font-size: 0.8125rem; }
-.md-content h3, .md-content h4 { font-size: 0.75rem; }
-.md-content p { margin-bottom: 0.45em; }
-.md-content ul, .md-content ol { padding-left: 1.15em; margin-bottom: 0.45em; }
-.md-content ul { list-style-type: disc; }
-.md-content ol { list-style-type: decimal; }
-.md-content li { margin-bottom: 0.1em; }
-.md-content strong, .md-content b { font-weight: 600; color: rgb(212 212 216); }
-.md-content em { font-style: italic; }
-.md-content code {
-  font-family: var(--font-mono), monospace; font-size: 0.8em;
-  background: rgb(39 39 42); padding: 0.1em 0.3em; border-radius: 0.25em;
-}
-.md-content pre {
-  background: rgb(24 24 27); padding: 0.65em 0.85em;
-  border-radius: 0.5em; overflow-x: auto; margin-bottom: 0.45em;
-}
-.md-content pre code { background: none; padding: 0; font-size: 0.75rem; }
-.md-content hr { border-color: rgb(63 63 70); margin: 0.65em 0; }
-.md-content blockquote {
-  border-left: 2px solid rgb(63 63 70); padding-left: 0.75em;
-  color: rgb(113 113 122); margin-bottom: 0.45em;
-}
-.md-content a { color: rgb(129 140 248); text-decoration: underline; }
+.md-content h1, .md-content h2 { font-size: 0.9rem; font-weight: 600; color: rgb(212 212 216); margin-top: 0.75rem; margin-bottom: 0.25rem; }
+.md-content h3, .md-content h4 { font-size: 0.8rem; font-weight: 600; color: rgb(212 212 216); margin-top: 0.5rem; margin-bottom: 0.25rem; }
+.md-content p { margin-bottom: 0.5rem; }
+.md-content ul { list-style-type: disc; padding-left: 1.25rem; margin-bottom: 0.5rem; }
+.md-content ol { list-style-type: decimal; padding-left: 1.25rem; margin-bottom: 0.5rem; }
+.md-content li { margin-bottom: 0.15rem; }
+.md-content code { font-family: monospace; background: rgb(39 39 42); padding: 0.1em 0.3em; border-radius: 0.25rem; font-size: 0.7rem; color: rgb(167 139 250); }
+.md-content pre { background: rgb(39 39 42); padding: 0.5rem; border-radius: 0.375rem; overflow-x: auto; margin-bottom: 0.5rem; }
+.md-content pre code { background: none; padding: 0; }
+.md-content strong { font-weight: 600; color: rgb(212 212 216); }
+.md-content blockquote { border-left: 2px solid rgb(63 63 70); padding-left: 0.75rem; color: rgb(113 113 122); margin-bottom: 0.5rem; }

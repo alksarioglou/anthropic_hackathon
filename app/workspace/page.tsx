@@ -533,7 +533,7 @@ export default function WorkspacePage() {
             {/* Idea context */}
             <div className="mb-6 px-4 py-3 rounded-xl bg-zinc-900 border border-zinc-800">
               <p className="text-xs text-zinc-500 mb-0.5">Project idea</p>
-              <p className="text-sm text-zinc-300">{project.idea}</p>
+              <p className="text-sm text-zinc-300 whitespace-pre-line line-clamp-3">{project.idea}</p>
             </div>
 
             {/* View toggle — in body */}

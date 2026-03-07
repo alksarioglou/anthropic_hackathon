@@ -1,0 +1,133 @@
+"use client";
+
+import { useTranslation } from "@/lib/i18n";
+import type { OnboardingPayload } from "@/lib/onboarding-payload";
+import type { PrefillField } from "../page";
+
+interface WorkflowsStepProps {
+  keyWorkflows: string;
+  approvals: string;
+  notifications: string;
+  onChange: (updates: Partial<OnboardingPayload>) => void;
+  onContinue: () => void;
+  streamingFields?: Partial<Record<PrefillField, string>>;
+}
+
+function StreamingField({
+  label,
+  value,
+  streamingText,
+  onChange,
+  placeholder,
+  rows,
+}: {
+  label: string;
+  value: string;
+  streamingText: string | undefined;
+  onChange: (v: string) => void;
+  placeholder: string;
+  rows: number;
+}) {
+  const isStreaming = streamingText !== undefined;
+
+  return (
+    <div>
+      <div className="flex items-center gap-2 mb-2">
+        <label className="text-sm font-medium text-foreground">{label}</label>
+        {isStreaming && (
+          <span className="flex items-center gap-1.5 text-xs text-accent">
+            <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+            AI is writing…
+          </span>
+        )}
+      </div>
+
+      {isStreaming ? (
+        // Streaming view — matches workspace streaming style
+        <div
+          className="w-full rounded-lg border border-input-border bg-input-bg p-3 text-foreground text-sm whitespace-pre-wrap leading-relaxed"
+          style={{ minHeight: `${rows * 1.625}rem` }}
+        >
+          {streamingText}
+          <span
+            className="inline-block w-0.5 bg-accent animate-pulse align-middle ml-0.5"
+            style={{ height: "1em" }}
+          />
+        </div>
+      ) : (
+        <textarea
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          rows={rows}
+          className="w-full rounded-lg border border-input-border bg-input-bg p-3 text-foreground placeholder:text-foreground-muted outline-none transition-colors focus:border-input-border-focus resize-none"
+        />
+      )}
+    </div>
+  );
+}
+
+export function WorkflowsStep({
+  keyWorkflows,
+  approvals,
+  notifications,
+  onChange,
+  onContinue,
+  streamingFields = {},
+}: WorkflowsStepProps) {
+  const { t } = useTranslation();
+
+  return (
+    <div className="max-w-2xl w-full px-8">
+      <div className="flex items-start gap-6">
+        <span className="text-foreground-muted text-lg font-medium mt-0.5">
+          5.
+        </span>
+        <div className="flex-1 space-y-6">
+          <h2 className="text-2xl font-semibold text-foreground">
+            {t("onboarding.workflows.title")}
+          </h2>
+          <p className="text-foreground-secondary text-sm mb-2">
+            {t("onboarding.workflows.description")}
+          </p>
+
+          <StreamingField
+            label={t("onboarding.workflows.keyWorkflowsLabel")}
+            value={keyWorkflows}
+            streamingText={streamingFields.keyWorkflows}
+            onChange={(v) => onChange({ keyWorkflows: v })}
+            placeholder={t("onboarding.workflows.keyWorkflowsPlaceholder")}
+            rows={3}
+          />
+
+          <StreamingField
+            label={t("onboarding.workflows.approvalsLabel")}
+            value={approvals}
+            streamingText={streamingFields.approvals}
+            onChange={(v) => onChange({ approvals: v })}
+            placeholder={t("onboarding.workflows.approvalsPlaceholder")}
+            rows={2}
+          />
+
+          <StreamingField
+            label={t("onboarding.workflows.notificationsLabel")}
+            value={notifications}
+            streamingText={streamingFields.notifications}
+            onChange={(v) => onChange({ notifications: v })}
+            placeholder={t("onboarding.workflows.notificationsPlaceholder")}
+            rows={2}
+          />
+
+          <div className="flex justify-center pt-4">
+            <button
+              onClick={onContinue}
+              className="rounded-full bg-primary px-12 py-3 text-base font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
+            >
+              {t("onboarding.questions.continue")}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

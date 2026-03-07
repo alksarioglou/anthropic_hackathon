@@ -8,13 +8,19 @@
  * @module
  */
 
+import type * as onboarding from "../onboarding.js";
+import type * as techSpecs from "../techSpecs.js";
+
 import type {
   ApiFromModules,
   FilterApi,
   FunctionReference,
 } from "convex/server";
 
-declare const fullApi: ApiFromModules<{}>;
+declare const fullApi: ApiFromModules<{
+  onboarding: typeof onboarding;
+  techSpecs: typeof techSpecs;
+}>;
 
 /**
  * A utility for referencing Convex functions in your app's public API.
