@@ -453,11 +453,29 @@ function ArtifactModal({
 
 // ─── idea panel ──────────────────────────────────────────────────────────────
 
-function QuestionRow({ label, value }: { label: string; value: string }) {
+function SidebarQuestionRow({ label, value }: { label: string; value: string }) {
+  const [open, setOpen] = useState(false);
   return (
-    <div>
-      <p className="text-xs font-medium text-foreground-muted mb-0.5">{label}</p>
-      <p className="text-xs text-foreground-secondary whitespace-pre-line leading-relaxed">{value}</p>
+    <div className="border-b border-border-light last:border-b-0">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-background-secondary transition-colors"
+      >
+        <div className="flex items-center gap-1.5 min-w-0">
+          <svg
+            className={`w-3 h-3 text-foreground-muted shrink-0 transition-transform duration-150 ${open ? "rotate-90" : ""}`}
+            viewBox="0 0 16 16" fill="currentColor"
+          >
+            <path d="M6 3l5 5-5 5V3z" />
+          </svg>
+          <span className="text-xs font-medium text-foreground-secondary truncate">{label}</span>
+        </div>
+      </button>
+      {open && (
+        <div className="px-3 pb-2 pl-7">
+          <p className="text-xs text-foreground-muted whitespace-pre-line leading-relaxed">{value}</p>
+        </div>
+      )}
     </div>
   );
 }
@@ -579,26 +597,16 @@ function IdeaPanel({ project, onUpdateIdea }: { project: Project; onUpdateIdea: 
               onChange={(e) => setEditText(e.target.value)}
               rows={4}
               autoFocus
-              className="w-full px-4 py-3 bg-background-secondary text-sm text-foreground font-mono leading-relaxed resize-none focus:outline-none"
+              className="w-full px-3 py-2 bg-background-secondary text-xs text-foreground font-mono leading-relaxed resize-none focus:outline-none"
             />
           ) : (
-            <div className="px-4 py-3">
-              <p className="text-sm text-foreground-secondary whitespace-pre-line max-h-32 overflow-y-auto leading-relaxed">{description}</p>
-            </div>
-          )}
-
-          {!editMode && q && (q.userRoles || q.accessControl || q.keyWorkflows || q.approvals || q.notifications) && (
-            <div className="px-4 pb-3 pt-3 border-t border-border-light space-y-2">
-              {q.userRoles && <QuestionRow label="Users & Roles" value={q.userRoles} />}
-              {q.accessControl && <QuestionRow label="Access Control" value={q.accessControl} />}
-              {q.keyWorkflows && <QuestionRow label="Key Workflows" value={q.keyWorkflows} />}
-              {q.approvals && <QuestionRow label="Approvals" value={q.approvals} />}
-              {q.notifications && <QuestionRow label="Notifications" value={q.notifications} />}
+            <div className="px-3 py-2">
+              <p className="text-xs text-foreground-secondary whitespace-pre-line max-h-24 overflow-y-auto leading-relaxed">{description}</p>
             </div>
           )}
 
           {showRefine && (
-            <div className="px-4 py-3 border-t border-border bg-card-bg space-y-2">
+            <div className="px-3 py-2 border-t border-border bg-card-bg space-y-2">
               <textarea
                 ref={refineRef}
                 value={refinement}
@@ -606,14 +614,14 @@ function IdeaPanel({ project, onUpdateIdea }: { project: Project; onUpdateIdea: 
                 onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); applyRefinement(); } }}
                 placeholder="How should the idea be refined? (⌘↵ to apply)"
                 rows={2}
-                className="w-full px-3 py-2 rounded-lg bg-background border border-input-border text-foreground text-xs placeholder:text-foreground-muted focus:outline-none focus:border-primary resize-none"
+                className="w-full px-2 py-1.5 rounded-lg bg-background border border-input-border text-foreground text-xs placeholder:text-foreground-muted focus:outline-none focus:border-primary resize-none"
               />
               <div className="flex justify-end gap-2">
-                <button onClick={() => { setShowRefine(false); setRefinement(""); }} className="text-xs text-foreground-muted hover:text-foreground px-3 py-1.5 rounded-lg transition-colors">Cancel</button>
+                <button onClick={() => { setShowRefine(false); setRefinement(""); }} className="text-xs text-foreground-muted hover:text-foreground px-2 py-1 rounded-lg transition-colors">Cancel</button>
                 <button
                   onClick={applyRefinement}
                   disabled={!refinement.trim()}
-                  className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover disabled:bg-background-tertiary disabled:text-foreground-muted text-primary-foreground transition-colors"
+                  className="text-xs font-semibold px-2 py-1 rounded-lg bg-primary hover:bg-primary-hover disabled:bg-background-tertiary disabled:text-foreground-muted text-primary-foreground transition-colors"
                 >
                   Refine & Regenerate
                 </button>
@@ -622,23 +630,38 @@ function IdeaPanel({ project, onUpdateIdea }: { project: Project; onUpdateIdea: 
           )}
         </>
       )}
+
+      {/* Questionnaire rows — always visible below the idea panel */}
+      {q && (q.userRoles || q.accessControl || q.keyWorkflows || q.approvals || q.notifications) && (
+        <div className="border-t border-border">
+          {([
+            ["Users & Roles", q.userRoles],
+            ["Access Control", q.accessControl],
+            ["Key Workflows", q.keyWorkflows],
+            ["Approvals", q.approvals],
+            ["Notifications", q.notifications],
+          ] as const).map(([label, value]) =>
+            value ? <SidebarQuestionRow key={label} label={label} value={value} /> : null
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
 // ─── view toggle ─────────────────────────────────────────────────────────────
 
-function ViewToggle({
+function SidebarViewSwitch({
   active,
   onChange,
 }: {
   active: "business" | "technical" | "architecture";
   onChange: (v: "business" | "technical" | "architecture") => void;
 }) {
-  const labels: Record<string, string> = { business: "Business Mode", technical: "Dev Mode", architecture: "Architecture" };
+  const labels: Record<string, string> = { business: "Business", technical: "Technical", architecture: "Architecture" };
   return (
-    <div className="flex flex-col gap-1">
-      <p className="text-xs font-medium text-foreground-muted mb-1">View</p>
+    <div className="space-y-1">
+      <p className="text-xs font-medium text-foreground-muted uppercase tracking-wider mb-2">View</p>
       {(["business", "technical", "architecture"] as const).map((v) => (
         <button
           key={v}
@@ -646,7 +669,7 @@ function ViewToggle({
           className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
             active === v
               ? "bg-primary text-primary-foreground shadow-sm"
-              : "text-foreground-muted hover:text-foreground hover:bg-background-secondary"
+              : "text-foreground-secondary hover:text-foreground hover:bg-background-tertiary"
           }`}
         >
           {labels[v]}
@@ -992,6 +1015,22 @@ function WorkspaceContent() {
           </div>
 
           <div className="flex items-center gap-3">
+            {/* View toggle pills */}
+            <div className="flex items-center rounded-full border border-border bg-background p-0.5">
+              {(["business", "technical", "architecture"] as const).map((v) => (
+                <button
+                  key={v}
+                  onClick={() => handleViewChange(v)}
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-150 ${
+                    activeView === v
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-foreground-secondary hover:text-foreground"
+                  }`}
+                >
+                  {v === "business" ? "Business" : v === "technical" ? "Technical" : "Architecture"}
+                </button>
+              ))}
+            </div>
             {refinementCount > 0 && (
               <span className="flex items-center gap-1.5 text-xs text-success bg-success/10 border border-success/20 px-2.5 py-1 rounded-full">
                 <span className="w-1.5 h-1.5 rounded-full bg-success" />
@@ -1012,20 +1051,22 @@ function WorkspaceContent() {
       {/* Body: sidebar + main */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left sidebar */}
-        <aside className="w-72 shrink-0 flex flex-col border-r border-border overflow-y-auto">
-          {/* Branded project header */}
-          <div className="bg-primary px-4 py-4 shrink-0">
-            <p className="text-[11px] font-medium text-white/70 uppercase tracking-wide mb-1">Project workspace</p>
-            <p className="text-sm font-semibold text-white leading-snug line-clamp-2">
+        <aside className="w-64 shrink-0 border-r border-border bg-card-bg flex flex-col overflow-y-auto">
+          {/* Branded project header card */}
+          <div className="m-3 rounded-xl bg-primary p-4 shrink-0">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-primary-foreground/70 mb-1">
+              Project Workspace
+            </p>
+            <p className="text-sm font-bold text-primary-foreground leading-snug line-clamp-2">
               {project?.name ?? "Loading…"}
             </p>
-            <span className="mt-2 inline-flex items-center gap-1 text-[11px] text-white/80 bg-white/15 px-2 py-0.5 rounded-full">
+            <span className="mt-2 inline-block text-[10px] px-2 py-0.5 rounded font-medium bg-primary-foreground/20 text-primary-foreground">
               {project?.mode === "external" ? "External" : "Internal"} mode
             </span>
           </div>
 
           {/* Sidebar content */}
-          <div className="flex-1 p-4 flex flex-col gap-4 bg-background-secondary">
+          <div className="flex-1 overflow-y-auto px-3 pb-3 flex flex-col gap-4">
             {project && (
               <>
                 <IdeaPanel project={project} onUpdateIdea={handleUpdateIdea} />
@@ -1036,7 +1077,7 @@ function WorkspaceContent() {
         </aside>
 
         {/* Main content */}
-        <main className="flex-1 overflow-y-auto bg-background">
+        <main className="flex-1 overflow-y-auto bg-background p-6">
           {error && (
             <div className="flex flex-col items-center justify-center h-64 gap-3 text-center px-6">
               <p className="text-sm text-error">Generation failed</p>
@@ -1053,11 +1094,11 @@ function WorkspaceContent() {
             </div>
           )}
 
-          {!error && (
-            <div className="p-6">
+          {!error && project && (
+            <div>
               {/* Architecture view */}
               {activeView === "architecture" && (
-                <div className="flex gap-6 h-[calc(100vh-10rem)] rounded-xl overflow-hidden border border-border">
+                <div className="flex gap-6 h-[calc(100vh-8rem)] rounded-xl overflow-hidden border border-border">
                   <div className="flex-[3] min-w-0">
                     <ArchGraph graph={archGraph} />
                   </div>
@@ -1074,7 +1115,7 @@ function WorkspaceContent() {
 
               {/* Artifacts grid (business / technical) */}
               {activeView !== "architecture" && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                   {artifactTypes.map((type, i) => (
                     <ArtifactCard
                       key={type}

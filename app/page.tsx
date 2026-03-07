@@ -94,7 +94,7 @@ export default function Home() {
 
             {/* Right: Clerk SignUp */}
             <div className="flex justify-center lg:justify-end">
-              <SignUp routing="hash" />
+              <SignUp routing="hash" afterSignUpUrl="/home" />
             </div>
           </div>
         </div>
