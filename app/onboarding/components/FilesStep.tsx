@@ -50,24 +50,24 @@ export function FilesStep({ files, onChange, onContinue }: FilesStepProps) {
   }
 
   return (
-    <div className="max-w-2xl w-full px-8">
+    <div className="max-w-3xl w-full">
+      <h2 className="text-xl font-medium text-foreground mb-2">
+        {t("onboarding.files.title")}
+      </h2>
+      <p className="text-foreground-secondary text-sm mb-6">
+        {t("onboarding.files.description")}
+      </p>
+
       <div className="flex items-start gap-6">
-        <span className="text-foreground-muted text-lg font-medium mt-0.5">
-          4.
+        <span className="text-foreground-muted text-base font-medium mt-0.5">
+          5.
         </span>
         <div className="flex-1">
-          <h2 className="text-2xl font-semibold text-foreground mb-2">
-            {t("onboarding.files.title")}
-          </h2>
-          <p className="text-foreground-secondary text-sm mb-6">
-            {t("onboarding.files.description")}
-          </p>
-
           {/* Drop zone */}
           <div
             onDrop={handleDrop}
             onDragOver={handleDragOver}
-            className="border-2 border-dashed border-input-border rounded-lg p-8 text-center cursor-pointer hover:border-primary transition-colors"
+            className="border-2 border-dashed border-border rounded-xl p-8 text-center cursor-pointer hover:border-primary transition-colors bg-white"
           >
             <label className="cursor-pointer">
               <input
@@ -95,7 +95,7 @@ export function FilesStep({ files, onChange, onContinue }: FilesStepProps) {
             {files.map((file, index) => (
               <div
                 key={`${file.name}-${index}`}
-                className="flex items-center justify-between rounded-lg border border-border-light bg-background px-4 py-2"
+                className="flex items-center justify-between rounded-xl border border-border bg-white px-4 py-2"
               >
                 <div>
                   <p className="text-sm text-foreground">{file.name}</p>
@@ -113,10 +113,10 @@ export function FilesStep({ files, onChange, onContinue }: FilesStepProps) {
             ))}
           </div>
 
-          <div className="mt-8 flex justify-center">
+          <div className="mt-10 flex justify-center">
             <button
               onClick={onContinue}
-              className="rounded-full bg-primary px-12 py-3 text-base font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
+              className="rounded-full bg-primary px-16 py-3.5 text-base font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
             >
               {t("onboarding.questions.continue")}
             </button>

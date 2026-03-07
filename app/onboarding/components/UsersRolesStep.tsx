@@ -42,9 +42,8 @@ function StreamingField({
       </div>
 
       {isStreaming ? (
-        // Streaming view — matches workspace streaming style
         <div
-          className="w-full rounded-lg border border-input-border bg-input-bg p-3 text-foreground text-sm whitespace-pre-wrap leading-relaxed"
+          className="w-full rounded-xl border border-border bg-white p-4 text-foreground text-sm whitespace-pre-wrap leading-relaxed"
           style={{ minHeight: `${rows * 1.625}rem` }}
         >
           {streamingText}
@@ -59,7 +58,7 @@ function StreamingField({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           rows={rows}
-          className="w-full rounded-lg border border-input-border bg-input-bg p-3 text-foreground placeholder:text-foreground-muted outline-none transition-colors focus:border-input-border-focus resize-none"
+          className="w-full rounded-xl border border-border bg-white p-4 text-foreground placeholder:text-foreground-muted outline-none transition-colors focus:border-input-border-focus resize-none"
         />
       )}
     </div>
@@ -76,19 +75,19 @@ export function UsersRolesStep({
   const { t } = useTranslation();
 
   return (
-    <div className="max-w-2xl w-full px-8">
+    <div className="max-w-3xl w-full">
+      <h2 className="text-xl font-medium text-foreground mb-2">
+        {t("onboarding.usersRoles.title")}
+      </h2>
+      <p className="text-foreground-secondary text-sm mb-6">
+        {t("onboarding.usersRoles.description")}
+      </p>
+
       <div className="flex items-start gap-6">
-        <span className="text-foreground-muted text-lg font-medium mt-0.5">
-          4.
+        <span className="text-foreground-muted text-base font-medium mt-0.5">
+          3.
         </span>
         <div className="flex-1 space-y-6">
-          <h2 className="text-2xl font-semibold text-foreground">
-            {t("onboarding.usersRoles.title")}
-          </h2>
-          <p className="text-foreground-secondary text-sm mb-2">
-            {t("onboarding.usersRoles.description")}
-          </p>
-
           <StreamingField
             label={t("onboarding.usersRoles.rolesLabel")}
             value={userRoles}
@@ -110,7 +109,7 @@ export function UsersRolesStep({
           <div className="flex justify-center pt-4">
             <button
               onClick={onContinue}
-              className="rounded-full bg-primary px-12 py-3 text-base font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
+              className="rounded-full bg-primary px-16 py-3.5 text-base font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
             >
               {t("onboarding.questions.continue")}
             </button>

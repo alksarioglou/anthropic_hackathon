@@ -11,22 +11,22 @@ export function WelcomeStep({ userName, onStart }: WelcomeStepProps) {
   const { t } = useTranslation();
 
   return (
-    <div className="max-w-2xl px-8">
-      <h1 className="text-3xl font-semibold text-foreground mb-6">
+    <div className="max-w-3xl">
+      <h1 className="text-3xl font-light text-foreground mb-6">
         {t("onboarding.welcome.greeting", { name: userName })}
       </h1>
 
       <p className="text-foreground-secondary text-base leading-relaxed mb-2">
         {t("onboarding.welcome.description")}{" "}
-        <span className="italic text-accent">
+        <span className="text-accent">
           {t("onboarding.welcome.saveNote")}
         </span>
       </p>
 
-      <div className="mt-8 flex justify-center">
+      <div className="mt-10 flex justify-center">
         <button
           onClick={onStart}
-          className="rounded-full bg-primary px-12 py-3 text-base font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
+          className="rounded-full bg-primary px-16 py-3.5 text-base font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
         >
           {t("onboarding.welcome.cta")}
         </button>

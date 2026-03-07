@@ -52,12 +52,12 @@ export function ReviewStep({ payload, onSubmit }: ReviewStepProps) {
   const np = t("onboarding.review.notProvided");
 
   return (
-    <div className="max-w-2xl w-full px-8 overflow-y-auto max-h-[calc(100vh-240px)]">
-      <h2 className="text-2xl font-semibold text-foreground mb-6">
+    <div className="max-w-3xl w-full overflow-y-auto max-h-[calc(100vh-240px)]">
+      <h2 className="text-xl font-medium text-foreground mb-6">
         {t("onboarding.review.title")}
       </h2>
 
-      <div className="rounded-lg border border-border bg-background p-6">
+      <div className="rounded-xl border border-border bg-white p-6">
         <ReviewRow
           label={t("onboarding.review.toolIdeaLabel")}
           value={payload.toolDescription || np}
@@ -106,11 +106,11 @@ export function ReviewStep({ payload, onSubmit }: ReviewStepProps) {
         </div>
       </div>
 
-      <div className="mt-8 flex justify-center pb-16">
+      <div className="mt-10 flex justify-center pb-16">
         <button
           onClick={handleSubmit}
           disabled={submitting || !payload.toolDescription.trim()}
-          className="rounded-full bg-primary px-12 py-3 text-base font-medium text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
+          className="rounded-full bg-primary px-16 py-3.5 text-base font-medium text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {submitting
             ? t("onboarding.review.submitting")

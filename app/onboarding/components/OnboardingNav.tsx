@@ -31,67 +31,84 @@ export function OnboardingNav({
 }: OnboardingNavProps) {
   const { t } = useTranslation();
 
-  return (
-    <nav className="flex items-center justify-between border-b border-border bg-nav-bg px-4 sm:px-6 lg:px-8 h-16">
-      <div className="flex items-center gap-6 overflow-x-auto">
-        <MaturaLogo className="h-7" />
+  const currentIndex = steps.indexOf(currentStep);
+  const progressFraction = (currentIndex + 1) / steps.length;
 
-        <div className="flex items-center gap-1">
+  return (
+    <nav className="relative border-b border-border bg-nav-bg">
+      {/* Red progress bar at the very top */}
+      <div className="absolute top-0 left-0 right-0 h-[3px] bg-transparent">
+        <div
+          className="h-full bg-primary transition-all duration-300"
+          style={{ width: `${progressFraction * 100}%` }}
+        />
+      </div>
+
+      <div className="flex items-center h-14 px-4 sm:px-6">
+        {/* Logo — fixed width */}
+        <div className="shrink-0 mr-4">
+          <MaturaLogo className="h-7" />
+        </div>
+
+        {/* Steps — evenly distributed across remaining space */}
+        <div className="flex flex-1 items-center">
           {steps.map((stepId, index) => {
             const isActive = stepId === currentStep;
             const isCompleted = completedSteps.has(stepId);
             const isFirst = index === 0;
             const isLast = index === steps.length - 1;
+            const showChevron = !isFirst && !isLast;
 
             return (
               <button
                 key={stepId}
                 onClick={() => onStepClick(stepId)}
                 className={`
-                  relative flex items-center gap-1.5 px-3 py-2 text-sm whitespace-nowrap rounded transition-colors
+                  flex-1 flex items-center justify-center gap-1.5 py-2 text-[13px] whitespace-nowrap transition-colors
+                  ${isFirst ? "justify-start" : ""}
+                  ${isLast ? "justify-end" : ""}
                   ${
                     isActive
-                      ? "text-primary font-medium"
+                      ? "text-foreground font-semibold"
                       : isCompleted
-                        ? "text-success font-medium"
+                        ? "text-success"
                         : "text-foreground-muted"
                   }
                   hover:text-foreground
                 `}
               >
-                {(isFirst || isLast) && (
-                  <span className="text-xs">
-                    {isCompleted ? "\u2713" : "\u2691"}
-                  </span>
-                )}
-                {!isFirst && !isLast && (
-                  <span className="text-xs">
-                    {isCompleted ? "\u2713" : "\u203A"}
-                  </span>
-                )}
-                {t(stepLabelKeys[stepId] as Parameters<typeof t>[0])}
-                {isActive && (
-                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
+                {/* Step icon */}
+                <span className={`text-xs ${isCompleted ? "text-success" : ""}`}>
+                  {isCompleted
+                    ? "\u2713"
+                    : isLast
+                      ? "\u2691"
+                      : isFirst
+                        ? "\u2691"
+                        : "\u203A"}
+                </span>
+                <span>{t(stepLabelKeys[stepId] as Parameters<typeof t>[0])}</span>
+                {/* Dropdown chevron */}
+                {showChevron && (
+                  <svg className="w-3 h-3 opacity-50" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M3 4.5L6 7.5L9 4.5" />
+                  </svg>
                 )}
               </button>
             );
           })}
         </div>
-      </div>
 
-      <button
-        onClick={onSave}
-        className={`
-          ml-4 whitespace-nowrap rounded-full border px-5 py-2 text-sm font-medium transition-colors
-          ${
-            completedSteps.size > 0
-              ? "border-primary bg-primary text-primary-foreground hover:bg-primary-hover"
-              : "border-border text-foreground-secondary hover:bg-background-secondary"
-          }
-        `}
-      >
-        {t("onboarding.nav.saveProgress")}
-      </button>
+        {/* Save Progress button */}
+        <div className="shrink-0 ml-4">
+          <button
+            onClick={onSave}
+            className="whitespace-nowrap rounded-lg border border-border px-5 py-2 text-sm text-foreground-secondary transition-colors hover:bg-background-secondary"
+          >
+            {t("onboarding.nav.saveProgress")}
+          </button>
+        </div>
+      </div>
     </nav>
   );
 }
