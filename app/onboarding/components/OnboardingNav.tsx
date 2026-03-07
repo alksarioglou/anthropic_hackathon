@@ -13,8 +13,6 @@ interface OnboardingNavProps {
 }
 
 const stepLabelKeys: Record<StepId, string> = {
-  start: "onboarding.steps.start",
-  projectMode: "onboarding.steps.projectMode",
   toolIdea: "onboarding.steps.toolIdea",
   usersRoles: "onboarding.steps.usersRoles",
   workflows: "onboarding.steps.workflows",

@@ -704,6 +704,8 @@ function WorkspaceContent() {
   const [activeView, setActiveView] = useState<"business" | "technical" | "architecture">("technical");
   const [refinementCount, setRefinementCount] = useState(0);
   const [focusedType, setFocusedType] = useState<ArtifactType | null>(null);
+  const [isRenamingTitle, setIsRenamingTitle] = useState(false);
+  const [renameTitleValue, setRenameTitleValue] = useState("");
 
   // Architecture view state
   type ArchPhase = "idle" | "loading" | "graph-ready" | "streaming" | "done" | "error";
@@ -994,9 +996,33 @@ function WorkspaceContent() {
               <>
                 <div className="hidden sm:block h-5 w-px bg-border" />
                 <div className="hidden sm:block">
-                  <p className="text-sm font-medium text-foreground leading-tight">
-                    {project.name}
-                  </p>
+                  {isRenamingTitle ? (
+                    <input
+                      autoFocus
+                      className="text-sm font-medium text-foreground leading-tight bg-transparent border-b border-primary outline-none w-48"
+                      value={renameTitleValue}
+                      onChange={(e) => setRenameTitleValue(e.target.value)}
+                      onBlur={async () => {
+                        const trimmed = renameTitleValue.trim();
+                        if (trimmed && trimmed !== project.name && projectId) {
+                          await updateProjectMut({ id: projectId, name: trimmed });
+                        }
+                        setIsRenamingTitle(false);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+                        if (e.key === "Escape") { setIsRenamingTitle(false); }
+                      }}
+                    />
+                  ) : (
+                    <button
+                      className="group flex items-center gap-1 text-sm font-medium text-foreground leading-tight hover:text-foreground"
+                      onClick={() => { setRenameTitleValue(project.name); setIsRenamingTitle(true); }}
+                    >
+                      {project.name}
+                      <span className="opacity-0 group-hover:opacity-50 text-foreground-muted transition-opacity">✎</span>
+                    </button>
+                  )}
                   <p className="text-xs text-foreground-muted leading-tight flex items-center gap-1.5">
                     {project.mode === "external" ? "External" : "Internal"} mode
                     {isGenerating && (
