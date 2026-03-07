@@ -492,6 +492,7 @@ function WorkspaceContent() {
             </button>
             <ThemeToggle />
             <LanguageSwitcher />
+            <ThemeToggle />
             <UserButton />
           </div>
         </div>

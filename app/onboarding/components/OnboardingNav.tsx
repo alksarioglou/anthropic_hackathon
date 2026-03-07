@@ -98,6 +98,7 @@ export function OnboardingNav({
         <div className="shrink-0 ml-4 flex items-center gap-2">
           <ThemeToggle />
           <LanguageSwitcher />
+          <ThemeToggle />
           <UserButton />
         </div>
       </div>
