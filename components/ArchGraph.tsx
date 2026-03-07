@@ -7,7 +7,6 @@ import {
   Edge,
   Background,
   Controls,
-  MiniMap,
   BackgroundVariant,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
@@ -73,13 +72,13 @@ export function ArchGraph({ graph }: Props) {
 
   if (!graph) {
     return (
-      <div className="w-full h-full flex items-center justify-center bg-gray-50 rounded-xl">
-        <div className="flex flex-col items-center gap-4 text-gray-400">
+      <div className="w-full h-full flex items-center justify-center bg-background-secondary">
+        <div className="flex flex-col items-center gap-4 text-foreground-muted">
           <div className="w-full max-w-sm space-y-3 px-8">
             {[100, 80, 90, 70].map((w, i) => (
               <div
                 key={i}
-                className="h-10 bg-gray-200 rounded-lg animate-pulse"
+                className="h-10 bg-background-tertiary rounded-lg animate-pulse"
                 style={{ width: `${w}%` }}
               />
             ))}
@@ -95,26 +94,14 @@ export function ArchGraph({ graph }: Props) {
       nodes={nodes}
       edges={edges}
       nodeTypes={nodeTypes}
+      colorMode="light"
       fitView
       fitViewOptions={{ padding: 0.2 }}
       attributionPosition="bottom-right"
+      style={{ background: "#f5f5f5" }}
     >
-      <Background variant={BackgroundVariant.Dots} gap={16} size={1} color="#e2e8f0" />
+      <Background variant={BackgroundVariant.Dots} gap={16} size={1} color="#d4d4d4" />
       <Controls />
-      <MiniMap
-        nodeColor={(n) => {
-          const colors: Record<string, string> = {
-            service: "#93c5fd",
-            database: "#c4b5fd",
-            queue: "#fcd34d",
-            gateway: "#86efac",
-            external: "#d1d5db",
-            group: "#e5e7eb",
-          };
-          return colors[n.type ?? "service"] ?? "#93c5fd";
-        }}
-        maskColor="rgba(248,250,252,0.7)"
-      />
     </ReactFlow>
   );
 }

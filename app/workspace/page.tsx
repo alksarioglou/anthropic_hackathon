@@ -128,7 +128,7 @@ function ArtifactCard({
           {isStreaming && (
             <span className="flex-shrink-0 flex items-center gap-1.5 text-xs text-primary animate-fade-in">
               <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              AI is writing…
+              Claude is writing…
             </span>
           )}
         </div>
