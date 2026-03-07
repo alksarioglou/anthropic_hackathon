@@ -455,11 +455,29 @@ function ArtifactModal({
 
 // ─── idea panel ──────────────────────────────────────────────────────────────
 
-function QuestionRow({ label, value }: { label: string; value: string }) {
+function SidebarQuestionRow({ label, value }: { label: string; value: string }) {
+  const [open, setOpen] = useState(false);
   return (
-    <div>
-      <p className="text-xs font-medium text-foreground-muted mb-0.5">{label}</p>
-      <p className="text-xs text-foreground-secondary whitespace-pre-line leading-relaxed">{value}</p>
+    <div className="border-b border-border-light last:border-b-0">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-background-secondary transition-colors"
+      >
+        <div className="flex items-center gap-1.5 min-w-0">
+          <svg
+            className={`w-3 h-3 text-foreground-muted shrink-0 transition-transform duration-150 ${open ? "rotate-90" : ""}`}
+            viewBox="0 0 16 16" fill="currentColor"
+          >
+            <path d="M6 3l5 5-5 5V3z" />
+          </svg>
+          <span className="text-xs font-medium text-foreground-secondary truncate">{label}</span>
+        </div>
+      </button>
+      {open && (
+        <div className="px-3 pb-2 pl-7">
+          <p className="text-xs text-foreground-muted whitespace-pre-line leading-relaxed">{value}</p>
+        </div>
+      )}
     </div>
   );
 }
@@ -514,7 +532,7 @@ function IdeaPanel({ project, onUpdateIdea }: { project: Project; onUpdateIdea: 
   }
 
   return (
-    <div className={`mb-6 rounded-xl bg-background border animate-fade-in overflow-hidden transition-colors ${editMode ? "border-amber-500/50" : showRefine ? "border-primary/50" : "border-border"}`}>
+    <div className={`rounded-xl bg-background border animate-fade-in overflow-hidden transition-colors ${editMode ? "border-amber-500/50" : showRefine ? "border-primary/50" : "border-border"}`}>
       {/* Collapsible header */}
       <div
         className="px-4 py-2.5 flex items-center justify-between cursor-pointer select-none"
@@ -581,26 +599,16 @@ function IdeaPanel({ project, onUpdateIdea }: { project: Project; onUpdateIdea: 
               onChange={(e) => setEditText(e.target.value)}
               rows={4}
               autoFocus
-              className="w-full px-4 py-3 bg-background-secondary text-sm text-foreground font-mono leading-relaxed resize-none focus:outline-none"
+              className="w-full px-3 py-2 bg-background-secondary text-xs text-foreground font-mono leading-relaxed resize-none focus:outline-none"
             />
           ) : (
-            <div className="px-4 py-3">
-              <p className="text-sm text-foreground-secondary whitespace-pre-line max-h-32 overflow-y-auto leading-relaxed">{description}</p>
-            </div>
-          )}
-
-          {!editMode && q && (q.userRoles || q.accessControl || q.keyWorkflows || q.approvals || q.notifications) && (
-            <div className="px-4 pb-3 pt-3 border-t border-border-light space-y-2">
-              {q.userRoles && <QuestionRow label="Users & Roles" value={q.userRoles} />}
-              {q.accessControl && <QuestionRow label="Access Control" value={q.accessControl} />}
-              {q.keyWorkflows && <QuestionRow label="Key Workflows" value={q.keyWorkflows} />}
-              {q.approvals && <QuestionRow label="Approvals" value={q.approvals} />}
-              {q.notifications && <QuestionRow label="Notifications" value={q.notifications} />}
+            <div className="px-3 py-2">
+              <p className="text-xs text-foreground-secondary whitespace-pre-line max-h-24 overflow-y-auto leading-relaxed">{description}</p>
             </div>
           )}
 
           {showRefine && (
-            <div className="px-4 py-3 border-t border-border bg-card-bg space-y-2">
+            <div className="px-3 py-2 border-t border-border bg-card-bg space-y-2">
               <textarea
                 ref={refineRef}
                 value={refinement}
@@ -608,14 +616,14 @@ function IdeaPanel({ project, onUpdateIdea }: { project: Project; onUpdateIdea: 
                 onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); applyRefinement(); } }}
                 placeholder="How should the idea be refined? (\u2318\u21B5 to apply)"
                 rows={2}
-                className="w-full px-3 py-2 rounded-lg bg-background border border-input-border text-foreground text-xs placeholder:text-foreground-muted focus:outline-none focus:border-primary resize-none"
+                className="w-full px-2 py-1.5 rounded-lg bg-background border border-input-border text-foreground text-xs placeholder:text-foreground-muted focus:outline-none focus:border-primary resize-none"
               />
               <div className="flex justify-end gap-2">
-                <button onClick={() => { setShowRefine(false); setRefinement(""); }} className="text-xs text-foreground-muted hover:text-foreground px-3 py-1.5 rounded-lg transition-colors">Cancel</button>
+                <button onClick={() => { setShowRefine(false); setRefinement(""); }} className="text-xs text-foreground-muted hover:text-foreground px-2 py-1 rounded-lg transition-colors">Cancel</button>
                 <button
                   onClick={applyRefinement}
                   disabled={!refinement.trim()}
-                  className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover disabled:bg-background-tertiary disabled:text-foreground-muted text-primary-foreground transition-colors"
+                  className="text-xs font-semibold px-2 py-1 rounded-lg bg-primary hover:bg-primary-hover disabled:bg-background-tertiary disabled:text-foreground-muted text-primary-foreground transition-colors"
                 >
                   Refine & Regenerate
                 </button>
@@ -624,37 +632,51 @@ function IdeaPanel({ project, onUpdateIdea }: { project: Project; onUpdateIdea: 
           )}
         </>
       )}
+
+      {/* Questionnaire rows — always visible below the idea panel */}
+      {q && (q.userRoles || q.accessControl || q.keyWorkflows || q.approvals || q.notifications) && (
+        <div className="border-t border-border">
+          {([
+            ["Users & Roles", q.userRoles],
+            ["Access Control", q.accessControl],
+            ["Key Workflows", q.keyWorkflows],
+            ["Approvals", q.approvals],
+            ["Notifications", q.notifications],
+          ] as const).map(([label, value]) =>
+            value ? <SidebarQuestionRow key={label} label={label} value={value} /> : null
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
 // ─── view toggle ─────────────────────────────────────────────────────────────
 
-function ViewToggle({
+function SidebarViewSwitch({
   active,
   onChange,
 }: {
   active: "business" | "technical" | "architecture";
   onChange: (v: "business" | "technical" | "architecture") => void;
 }) {
-  const labels: Record<string, string> = { business: "Business Mode", technical: "Dev Mode", architecture: "Architecture" };
+  const labels: Record<string, string> = { business: "Business", technical: "Technical", architecture: "Architecture" };
   return (
-    <div className="flex items-center justify-center">
-      <div className="relative flex items-center bg-background border border-border rounded-full p-1 gap-1">
-        {(["business", "technical", "architecture"] as const).map((v) => (
-          <button
-            key={v}
-            onClick={() => onChange(v)}
-            className={`relative px-5 py-2 rounded-full text-sm font-medium transition-all duration-150 ${
-              active === v
-                ? "bg-primary text-primary-foreground shadow-sm"
-                : "text-foreground-secondary hover:text-foreground"
-            }`}
-          >
-            {labels[v]}
-          </button>
-        ))}
-      </div>
+    <div className="space-y-1">
+      <p className="text-xs font-medium text-foreground-muted uppercase tracking-wider mb-2">View</p>
+      {(["business", "technical", "architecture"] as const).map((v) => (
+        <button
+          key={v}
+          onClick={() => onChange(v)}
+          className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
+            active === v
+              ? "bg-primary text-primary-foreground"
+              : "text-foreground-secondary hover:text-foreground hover:bg-background-tertiary"
+          }`}
+        >
+          {labels[v]}
+        </button>
+      ))}
     </div>
   );
 }
@@ -987,9 +1009,9 @@ function WorkspaceContent() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header — matches home/onboarding nav */}
-      <nav className="border-b border-border bg-nav-bg">
-        <div className="flex items-center justify-between h-14 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto w-full">
+      {/* Header */}
+      <nav className="border-b border-border bg-nav-bg shrink-0">
+        <div className="flex items-center justify-between h-14 px-4 sm:px-6">
           <div className="flex items-center gap-4">
             <MaturaLogo className="h-7" />
             <div className="hidden sm:block h-5 w-px bg-border" />
@@ -999,13 +1021,27 @@ function WorkspaceContent() {
               </p>
               <p className="text-xs text-foreground-muted leading-tight">
                 {project?.mode === "external" ? "External" : "Internal"} mode
-                {isGenerating && <span className="ml-2 text-primary">\u00B7 Generating\u2026</span>}
+                {isGenerating && <span className="ml-2 text-primary">{"\u00B7"} Generating\u2026</span>}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            {/* Mode toggle in header like reference */}
-            <ViewToggle active={activeView} onChange={handleViewChange} />
+            {/* View toggle */}
+            <div className="flex items-center rounded-full border border-border bg-background p-0.5">
+              {(["business", "technical", "architecture"] as const).map((v) => (
+                <button
+                  key={v}
+                  onClick={() => handleViewChange(v)}
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-150 ${
+                    activeView === v
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-foreground-secondary hover:text-foreground"
+                  }`}
+                >
+                  {v === "business" ? "Business" : v === "technical" ? "Technical" : "Architecture"}
+                </button>
+              ))}
+            </div>
             <button
               onClick={() => router.push("/home")}
               className="rounded-full border border-border px-4 py-1.5 text-xs font-medium text-foreground-secondary hover:text-foreground hover:border-foreground-muted transition-colors"
@@ -1019,15 +1055,44 @@ function WorkspaceContent() {
 
       {/* Refinement bar */}
       {refinementCount > 0 && (
-        <div className="px-6 py-2 bg-success/5 border-b border-success/20 text-xs text-success flex items-center gap-2">
+        <div className="px-6 py-2 bg-success/5 border-b border-success/20 text-xs text-success flex items-center gap-2 shrink-0">
           <span className="w-1.5 h-1.5 rounded-full bg-success" />
           {refinementCount} refinement{refinementCount !== 1 ? "s" : ""} applied — artifacts kept in sync
         </div>
       )}
 
-      {/* Main content — card wrapper like onboarding */}
-      <main className="flex flex-1 px-4 py-4 sm:px-6 lg:px-8">
-        <div className="w-full max-w-6xl mx-auto rounded-2xl bg-card-bg min-h-[calc(100vh-100px)] px-8 sm:px-12 lg:px-16 py-8">
+      {/* Body: sidebar + main */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* ─── Left sidebar ─── */}
+        {project && (
+          <aside className="w-64 shrink-0 border-r border-border bg-card-bg flex flex-col overflow-y-auto">
+            {/* Project header card */}
+            <div className="m-3 rounded-xl bg-primary p-4">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-primary-foreground/70 mb-1">
+                Project Workspace
+              </p>
+              <p className="text-sm font-bold text-primary-foreground leading-snug">
+                {project.name}
+              </p>
+              <span className={`inline-block mt-2 text-[10px] px-2 py-0.5 rounded font-medium ${
+                project.mode === "internal"
+                  ? "bg-primary-foreground/20 text-primary-foreground"
+                  : "bg-primary-foreground/20 text-primary-foreground"
+              }`}>
+                {project.mode === "internal" ? "Internal mode" : "External mode"}
+              </span>
+            </div>
+
+            {/* Idea + questionnaire */}
+            <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-1">
+              <IdeaPanel project={project} onUpdateIdea={handleUpdateIdea} />
+            </div>
+
+          </aside>
+        )}
+
+        {/* ─── Main content ─── */}
+        <main className="flex-1 overflow-y-auto p-6">
           {error && (
             <div className="flex flex-col items-center justify-center h-64 gap-3 text-center">
               <p className="text-sm text-error">Generation failed</p>
@@ -1046,15 +1111,13 @@ function WorkspaceContent() {
 
           {!error && project && (
             <>
-              <IdeaPanel project={project} onUpdateIdea={handleUpdateIdea} />
-
               {/* Architecture view */}
               {activeView === "architecture" && (
-                <div className="flex gap-6 h-[70vh] rounded-xl overflow-hidden border border-border">
-                  <div className="flex-[3] min-w-0">
+                <div className="flex gap-6 h-[calc(100vh-8rem)] rounded-xl overflow-hidden border border-border">
+                  <div className="flex-3 min-w-0">
                     <ArchGraph graph={archGraph} />
                   </div>
-                  <div className="flex-[2] overflow-y-auto p-5 bg-background space-y-5">
+                  <div className="flex-2 overflow-y-auto p-5 bg-background space-y-5">
                     {archGraph && <TechStackLegend graph={archGraph} />}
                     <ProsePanel
                       statusMessages={archStatusMessages}
@@ -1067,7 +1130,7 @@ function WorkspaceContent() {
 
               {/* Artifacts grid (business / technical) */}
               {activeView !== "architecture" && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                   {artifactTypes.map((type, i) => (
                     <ArtifactCard
                       key={type}
@@ -1096,8 +1159,8 @@ function WorkspaceContent() {
               )}
             </>
           )}
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }
