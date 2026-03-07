@@ -26,6 +26,22 @@ function saveArtifacts(a: Artifacts) {
 
 // ─── icons ───────────────────────────────────────────────────────────────────
 
+function ExpandIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+    </svg>
+  );
+}
+
+function CollapseIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 3v3a2 2 0 01-2 2H3M21 8h-3a2 2 0 01-2-2V3M3 16h3a2 2 0 012 2v3M16 21v-3a2 2 0 012-2h3" />
+    </svg>
+  );
+}
+
 function SparklesIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
@@ -43,12 +59,14 @@ function ArtifactCard({
   streamingText,
   onStartRefinement,
   onDirectSave,
+  onFocus,
 }: {
   type: ArtifactType;
   content: string | undefined;
   streamingText: string | undefined;
   onStartRefinement: (type: ArtifactType, refinement: string) => Promise<void>;
   onDirectSave: (type: ArtifactType, text: string) => void;
+  onFocus?: () => void;
 }) {
   const isDone = content !== undefined;
   // streamingText takes priority — during refinement it streams over the existing content
@@ -132,6 +150,15 @@ function ArtifactCard({
             >
               {expanded ? "↑" : "↓"}
             </button>
+            {onFocus && (
+              <button
+                onClick={onFocus}
+                title="Focus"
+                className="text-zinc-600 hover:text-zinc-300 border border-zinc-700 hover:border-zinc-500 p-0.5 rounded-md transition-colors"
+              >
+                <ExpandIcon className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
         )}
 
@@ -269,6 +296,165 @@ function ArtifactCard({
   );
 }
 
+// ─── focus modal ─────────────────────────────────────────────────────────────
+
+function ArtifactModal({
+  type,
+  content,
+  streamingText,
+  onStartRefinement,
+  onDirectSave,
+  onClose,
+}: {
+  type: ArtifactType;
+  content: string | undefined;
+  streamingText: string | undefined;
+  onStartRefinement: (type: ArtifactType, refinement: string) => Promise<void>;
+  onDirectSave: (type: ArtifactType, text: string) => void;
+  onClose: () => void;
+}) {
+  const isStreaming = streamingText !== undefined;
+  const displayText = streamingText ?? content ?? "";
+
+  const [editMode, setEditMode] = useState(false);
+  const [editText, setEditText] = useState("");
+  const [showRefine, setShowRefine] = useState(false);
+  const [refinement, setRefinement] = useState("");
+  const [isRefining, setIsRefining] = useState(false);
+  const [refineError, setRefineError] = useState<string | null>(null);
+
+  const refineRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  useEffect(() => {
+    if (showRefine) refineRef.current?.focus();
+  }, [showRefine]);
+
+  async function submitRefinement() {
+    if (!refinement.trim() || isRefining) return;
+    setIsRefining(true);
+    setRefineError(null);
+    try {
+      await onStartRefinement(type, refinement.trim());
+      setRefinement("");
+      setShowRefine(false);
+    } catch (err) {
+      setRefineError(err instanceof Error ? err.message : "Failed");
+    } finally {
+      setIsRefining(false);
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/70 backdrop-blur-sm"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className={`relative w-full max-w-3xl max-h-[90vh] flex flex-col rounded-2xl border bg-zinc-900 shadow-2xl overflow-hidden transition-colors ${editMode ? "border-amber-500/50" : showRefine ? "border-indigo-500/50" : "border-zinc-700"}`}>
+
+        {/* Modal header */}
+        <div className="px-5 py-3.5 flex items-center justify-between gap-2 border-b border-zinc-800 flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-zinc-200">{ARTIFACT_LABELS[type]}</span>
+            {isStreaming && <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />}
+          </div>
+          <div className="flex items-center gap-1.5">
+            {!editMode && !isStreaming && content !== undefined && (
+              <>
+                <button
+                  onClick={() => { setShowRefine((v) => !v); setRefineError(null); }}
+                  title="Refine with AI"
+                  className={`p-1.5 rounded-lg border transition-colors ${showRefine ? "border-indigo-500 bg-indigo-600 text-white" : "border-zinc-700 text-zinc-400 hover:border-indigo-500 hover:bg-indigo-600 hover:text-white"}`}
+                >
+                  <SparklesIcon className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => { setEditText(content!); setEditMode(true); setShowRefine(false); }}
+                  className="text-xs text-zinc-500 hover:text-zinc-300 border border-zinc-700 hover:border-zinc-500 px-2 py-1 rounded-lg transition-colors"
+                >
+                  Edit
+                </button>
+              </>
+            )}
+            {editMode && (
+              <>
+                <button onClick={() => setEditMode(false)} className="text-xs text-zinc-500 hover:text-zinc-300 px-2 py-1 rounded-lg transition-colors">Cancel</button>
+                <button
+                  onClick={() => { onDirectSave(type, editText); setEditMode(false); }}
+                  className="text-xs font-medium text-amber-400 border border-amber-500/40 bg-amber-500/10 hover:border-amber-500/70 px-2 py-1 rounded-lg transition-colors"
+                >
+                  Save
+                </button>
+              </>
+            )}
+            <button onClick={onClose} title="Close (Esc)" className="ml-1 p-1.5 rounded-lg border border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:border-zinc-500 transition-colors">
+              <CollapseIcon className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Modal content */}
+        <div className="flex-1 overflow-y-auto">
+          {editMode ? (
+            <textarea
+              value={editText}
+              onChange={(e) => setEditText(e.target.value)}
+              className="w-full h-full min-h-[60vh] px-5 py-4 bg-zinc-950 text-sm text-zinc-300 font-mono leading-relaxed resize-none focus:outline-none"
+            />
+          ) : (
+            <div className="px-5 py-4">
+              {isStreaming ? (
+                <pre className="text-sm text-zinc-400 whitespace-pre-wrap font-mono leading-relaxed">
+                  {displayText}
+                  <span className="inline-block w-0.5 h-4 bg-indigo-400 animate-pulse align-middle ml-0.5" />
+                </pre>
+              ) : (
+                <div className="md-content !text-sm [&_.md-content]:text-sm">
+                  <ReactMarkdown>{displayText}</ReactMarkdown>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Refinement form */}
+        {!editMode && showRefine && (
+          <div className="px-5 py-3.5 border-t border-zinc-800 bg-zinc-950 space-y-2 flex-shrink-0">
+            <textarea
+              ref={refineRef}
+              value={refinement}
+              onChange={(e) => setRefinement(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); submitRefinement(); } }}
+              placeholder="What would you like to change? (⌘↵ to apply)"
+              rows={3}
+              className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-zinc-200 text-xs placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500 resize-none"
+            />
+            {refineError && <p className="text-xs text-red-400">{refineError}</p>}
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs text-zinc-600">Propagates to related artifacts automatically.</p>
+              <div className="flex gap-2">
+                <button onClick={() => { setShowRefine(false); setRefinement(""); setRefineError(null); }} className="text-xs text-zinc-500 hover:text-zinc-300 px-3 py-1.5 rounded-lg transition-colors">Cancel</button>
+                <button
+                  onClick={submitRefinement}
+                  disabled={isRefining || !refinement.trim()}
+                  className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-800 disabled:text-zinc-600 text-white transition-colors"
+                >
+                  {isRefining ? "Applying…" : "Apply"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── view toggle ─────────────────────────────────────────────────────────────
 
 function ViewToggle({
@@ -310,6 +496,7 @@ export default function WorkspacePage() {
   const [error, setError] = useState<string | null>(null);
   const [activeView, setActiveView] = useState<"business" | "technical">("technical");
   const [refinementCount, setRefinementCount] = useState(0);
+  const [focusedType, setFocusedType] = useState<ArtifactType | null>(null);
 
   // Refs for accurate accumulation without stale closures
   const streamAccumRef = useRef<Partial<Record<ArtifactType, string>>>({});
@@ -533,7 +720,7 @@ export default function WorkspacePage() {
             {/* Idea context */}
             <div className="mb-6 px-4 py-3 rounded-xl bg-zinc-900 border border-zinc-800">
               <p className="text-xs text-zinc-500 mb-0.5">Project idea</p>
-              <p className="text-sm text-zinc-300 whitespace-pre-line line-clamp-3">{project.idea}</p>
+              <p className="text-sm text-zinc-300 whitespace-pre-line">{project.idea}</p>
             </div>
 
             {/* View toggle — in body */}
@@ -549,9 +736,22 @@ export default function WorkspacePage() {
                   streamingText={streamingContent[type]}
                   onStartRefinement={handleStartRefinement}
                   onDirectSave={handleDirectSave}
+                  onFocus={() => setFocusedType(type)}
                 />
               ))}
             </div>
+
+            {/* Focus modal */}
+            {focusedType && (
+              <ArtifactModal
+                type={focusedType}
+                content={artifacts[focusedType]}
+                streamingText={streamingContent[focusedType]}
+                onStartRefinement={handleStartRefinement}
+                onDirectSave={handleDirectSave}
+                onClose={() => setFocusedType(null)}
+              />
+            )}
           </>
         )}
       </main>
