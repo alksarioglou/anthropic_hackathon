@@ -89,8 +89,6 @@ export const BUSINESS_ARTIFACTS: ArtifactType[] = [
 export const TECH_ARTIFACTS: ArtifactType[] = [
   "vision",
   "requirements",
-  "architecture",
-  "frameworks",
   "backlog",
   "tests",
   "competitive_analysis",
