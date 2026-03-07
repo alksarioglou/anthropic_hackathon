@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ToolForge - Build Internal Tools from Natural Language",
+  title: "matura - AI-Powered Software Planning",
   description:
-    "Create internal tools for your company from natural language specifications.",
+    "Transform your software idea into a complete, implementation-ready plan.",
 };
 
 export default function RootLayout({

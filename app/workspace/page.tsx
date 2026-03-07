@@ -672,11 +672,8 @@ export default function WorkspacePage() {
       {/* Header */}
       <header className="border-b border-zinc-800 px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => router.push("/")}
-            className="w-7 h-7 rounded-md bg-indigo-500 flex items-center justify-center text-xs font-bold text-white"
-          >
-            S
+          <button onClick={() => router.push("/")}>
+            <img src="/logo-light.svg" alt="matura" className="h-6" />
           </button>
           <div>
             <p className="text-sm font-medium text-zinc-100 leading-tight">

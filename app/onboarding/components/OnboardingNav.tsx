@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslation } from "@/lib/i18n";
+import { MaturaLogo } from "@/components/MaturaLogo";
 import type { StepId } from "../page";
 
 interface OnboardingNavProps {
@@ -33,9 +34,7 @@ export function OnboardingNav({
   return (
     <nav className="flex items-center justify-between border-b border-border bg-nav-bg px-4 sm:px-6 lg:px-8 h-16">
       <div className="flex items-center gap-6 overflow-x-auto">
-        <span className="text-lg font-bold text-foreground whitespace-nowrap">
-          {t("onboarding.brandName")}
-        </span>
+        <MaturaLogo className="h-7" />
 
         <div className="flex items-center gap-1">
           {steps.map((stepId, index) => {

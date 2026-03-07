@@ -5,7 +5,7 @@ export const defaultLocale: Locale = "en";
 const translations = {
   en: {
     onboarding: {
-      brandName: "ToolForge",
+      brandName: "matura",
       steps: {
         start: "Start",
         projectMode: "Project Type",
@@ -178,7 +178,7 @@ const translations = {
   },
   de: {
     onboarding: {
-      brandName: "ToolForge",
+      brandName: "matura",
       steps: {
         start: "Start",
         projectMode: "Projekttyp",
@@ -305,7 +305,7 @@ const translations = {
   },
   fr: {
     onboarding: {
-      brandName: "ToolForge",
+      brandName: "matura",
       steps: {
         start: "Debut",
         projectMode: "Type de projet",

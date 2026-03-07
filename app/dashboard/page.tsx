@@ -6,6 +6,7 @@ import { useQuery, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { useTranslation } from "@/lib/i18n";
+import { MaturaLogo } from "@/components/MaturaLogo";
 import { sampleData } from "@/lib/dashboard-data";
 
 // Shared panels
@@ -49,9 +50,7 @@ function DashboardContent() {
     <div className="min-h-screen bg-background">
       {/* Top bar */}
       <nav className="flex items-center justify-between border-b border-border bg-nav-bg px-4 sm:px-6 lg:px-8 h-16 sticky top-0 z-10">
-        <span className="text-lg font-bold text-foreground">
-          {t("onboarding.brandName")}
-        </span>
+        <MaturaLogo className="h-7" />
         <div className="flex items-center gap-4">
           <span className={`text-xs px-3 py-1 rounded-full font-medium ${
             projectMode === "internal"
