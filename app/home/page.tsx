@@ -160,14 +160,6 @@ export default function HomePage() {
                     >
                       Workspace
                     </button>
-                    <button
-                      onClick={() =>
-                        router.push(`/dashboard?projectId=${project._id}`)
-                      }
-                      className="rounded-full border border-accent/30 bg-accent/5 px-4 py-1.5 text-xs font-medium text-accent hover:bg-accent/10 transition-colors"
-                    >
-                      Dashboard
-                    </button>
                   </div>
                 </div>
               ))}

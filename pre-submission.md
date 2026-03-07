@@ -90,19 +90,9 @@ pnpm dev
 # Open http://localhost:3000
 ```
 
-### First-time setup
-After `npx convex dev` syncs the schema, seed the internal knowledge base:
-```bash
-npx convex run seed:run
-```
-This populates the documents table used by the Architecture agent.
 
 ## Known Limitations
 
 - **Rate limiting**: Heavy use can hit Anthropic API rate limits. The system implements exponential backoff (up to 4 retries), but sustained rapid generation may still fail temporarily.
-- **No file upload processing**: The onboarding flow collects file metadata but does not yet parse uploaded document contents for the AI pipeline.
 - **Architecture diagram layout**: Auto-layout via dagre works well for most graphs, but very large architectures may need manual repositioning.
-- **Single-user scope**: Projects are not yet scoped per user — all authenticated users see all projects. Authentication is in place but per-user filtering is not implemented.
 - **No diff/PR view for refinements**: The feedback loop updates artifacts in-place. A side-by-side diff view showing before/after changes is planned but not yet implemented.
-- **Dashboard panels use sample data**: The business/technical dashboard panels (stakeholders, timeline, operations, etc.) currently display sample data rather than AI-generated content. The generated artifacts section at the top uses real data.
-- **No document context in generation**: The main generation pipeline does not yet incorporate uploaded documents or knowledge base content (only the architecture agent does).
