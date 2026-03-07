@@ -22,7 +22,7 @@ export function ProjectModeStep({
           <h2 className="text-3xl font-bold text-foreground mb-3">
             {t("onboarding.projectMode.title")}
           </h2>
-          <p className="text-foreground-secondary text-sm leading-relaxed mb-8">
+          <p className="text-foreground-secondary text-base leading-relaxed mb-8">
             {t("onboarding.projectMode.description")}
           </p>
 
@@ -31,7 +31,7 @@ export function ProjectModeStep({
             <button
               onClick={() => onChange("internal")}
               className={`
-                flex-1 rounded-xl border-2 p-6 text-left transition-all
+                flex-1 rounded-xl border-2 p-6 text-left transition-all hover:-translate-y-0.5 hover:shadow-lg
                 ${
                   projectMode === "internal"
                     ? "border-primary bg-primary/5 shadow-md"
@@ -58,7 +58,7 @@ export function ProjectModeStep({
             <button
               onClick={() => onChange("external")}
               className={`
-                flex-1 rounded-xl border-2 p-6 text-left transition-all
+                flex-1 rounded-xl border-2 p-6 text-left transition-all hover:-translate-y-0.5 hover:shadow-lg
                 ${
                   projectMode === "external"
                     ? "border-primary bg-primary/5 shadow-md"

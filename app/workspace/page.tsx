@@ -64,6 +64,7 @@ function ArtifactCard({
   onStartRefinement,
   onDirectSave,
   onFocus,
+  index = 0,
 }: {
   type: ArtifactType;
   content: string | undefined;
@@ -71,6 +72,7 @@ function ArtifactCard({
   onStartRefinement: (type: ArtifactType, refinement: string) => Promise<void>;
   onDirectSave: (type: ArtifactType, text: string) => void;
   onFocus?: () => void;
+  index?: number;
 }) {
   const isDone = content !== undefined;
   // streamingText takes priority — during refinement it streams over the existing content
@@ -127,7 +129,10 @@ function ArtifactCard({
       : "border-zinc-800";
 
   return (
-    <div className={`group relative rounded-xl border bg-zinc-900 transition-colors ${borderColor}`}>
+    <div
+      className={`group relative rounded-xl border bg-zinc-900 transition-colors animate-card-in ${borderColor}`}
+      style={{ animationDelay: `${index * 80}ms` }}
+    >
 
       {/* Card header */}
       <div className="px-4 py-3 flex items-center justify-between gap-2 border-b border-zinc-800">
@@ -136,7 +141,10 @@ function ArtifactCard({
             {ARTIFACT_LABELS[type]}
           </span>
           {isStreaming && (
-            <span className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
+            <span className="flex-shrink-0 flex items-center gap-1.5 text-xs text-indigo-400 animate-fade-in">
+              <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
+              AI is writing…
+            </span>
           )}
         </div>
 
@@ -157,10 +165,11 @@ function ArtifactCard({
             {onFocus && (
               <button
                 onClick={onFocus}
-                title="Focus"
-                className="text-zinc-600 hover:text-zinc-300 border border-zinc-700 hover:border-zinc-500 p-0.5 rounded-md transition-colors"
+                title="Open full view"
+                className="flex items-center gap-1 text-xs text-zinc-400 hover:text-zinc-100 border border-zinc-700 hover:border-zinc-400 hover:bg-zinc-800 px-2 py-0.5 rounded-md transition-colors"
               >
-                <ExpandIcon className="w-3.5 h-3.5" />
+                <ExpandIcon className="w-3 h-3" />
+                <span>Focus</span>
               </button>
             )}
           </div>
@@ -359,7 +368,7 @@ function ArtifactModal({
       className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/70 backdrop-blur-sm"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className={`relative w-full max-w-3xl max-h-[90vh] flex flex-col rounded-2xl border bg-zinc-900 shadow-2xl overflow-hidden transition-colors ${editMode ? "border-amber-500/50" : showRefine ? "border-indigo-500/50" : "border-zinc-700"}`}>
+      <div className={`relative w-full max-w-3xl max-h-[90vh] flex flex-col rounded-2xl border bg-zinc-900 shadow-2xl overflow-hidden transition-colors animate-modal-in ${editMode ? "border-amber-500/50" : showRefine ? "border-indigo-500/50" : "border-zinc-700"}`}>
 
         {/* Modal header */}
         <div className="px-5 py-3.5 flex items-center justify-between gap-2 border-b border-zinc-800 flex-shrink-0">
@@ -459,6 +468,156 @@ function ArtifactModal({
   );
 }
 
+// ─── idea panel ──────────────────────────────────────────────────────────────
+
+function QuestionRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs font-medium text-zinc-600 mb-0.5">{label}</p>
+      <p className="text-xs text-zinc-400 whitespace-pre-line leading-relaxed">{value}</p>
+    </div>
+  );
+}
+
+function IdeaPanel({ project, onUpdateIdea }: { project: Project; onUpdateIdea: (desc: string) => void }) {
+  const [editMode, setEditMode] = useState(false);
+  const [editText, setEditText] = useState("");
+  const [showRefine, setShowRefine] = useState(false);
+  const [refinement, setRefinement] = useState("");
+  const [isRefining, setIsRefining] = useState(false);
+  const refineRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => { if (showRefine) refineRef.current?.focus(); }, [showRefine]);
+
+  const description = project.description ?? project.idea.split("\n\n")[0];
+  const q = project.questionnaire;
+
+  async function applyRefinement() {
+    if (!refinement.trim() || isRefining) return;
+    setIsRefining(true);
+    setShowRefine(false);
+    const instruction = refinement.trim();
+    setRefinement("");
+    try {
+      const res = await fetch("/api/field-refine", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentValue: description, refinement: instruction }),
+      });
+      if (!res.ok || !res.body) throw new Error("Failed");
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let accumulated = "";
+      while (true) {
+        const { done, value: chunk } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(chunk, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          const parsed = JSON.parse(line);
+          if (parsed.chunk !== undefined) accumulated += parsed.chunk;
+        }
+      }
+      onUpdateIdea(accumulated);
+    } catch { /* silent */ } finally {
+      setIsRefining(false);
+    }
+  }
+
+  return (
+    <div className={`mb-6 rounded-xl bg-zinc-900 border animate-fade-in overflow-hidden transition-colors ${editMode ? "border-amber-500/50" : showRefine ? "border-indigo-500/50" : "border-zinc-800"}`}>
+      <div className="px-4 py-2.5 flex items-center justify-between border-b border-zinc-800">
+        <p className="text-xs font-medium text-zinc-500">Project idea</p>
+        {!editMode && !isRefining && (
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => { setShowRefine((v) => !v); }}
+              title="Refine with AI"
+              className={`p-1.5 rounded-lg border transition-colors ${showRefine ? "border-indigo-500 bg-indigo-600 text-white" : "border-zinc-700 text-zinc-400 hover:border-indigo-500 hover:bg-indigo-600 hover:text-white"}`}
+            >
+              <SparklesIcon className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => { setEditText(description); setEditMode(true); setShowRefine(false); }}
+              className="text-xs text-zinc-500 hover:text-zinc-300 border border-zinc-700 hover:border-zinc-500 px-2 py-0.5 rounded-md transition-colors"
+            >
+              Edit
+            </button>
+          </div>
+        )}
+        {editMode && (
+          <div className="flex gap-1.5">
+            <button onClick={() => setEditMode(false)} className="text-xs text-zinc-500 hover:text-zinc-300 px-2 py-0.5 rounded-md transition-colors">Cancel</button>
+            <button
+              onClick={() => { onUpdateIdea(editText); setEditMode(false); }}
+              className="text-xs font-medium text-amber-400 border border-amber-500/40 bg-amber-500/10 hover:border-amber-500/70 px-2 py-0.5 rounded-md transition-colors"
+            >
+              Save & Regenerate
+            </button>
+          </div>
+        )}
+        {isRefining && (
+          <span className="text-xs text-indigo-400 flex items-center gap-1.5 animate-fade-in">
+            <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
+            Refining…
+          </span>
+        )}
+      </div>
+
+      {editMode ? (
+        <textarea
+          value={editText}
+          onChange={(e) => setEditText(e.target.value)}
+          rows={4}
+          autoFocus
+          className="w-full px-4 py-3 bg-zinc-950 text-sm text-zinc-300 font-mono leading-relaxed resize-none focus:outline-none"
+        />
+      ) : (
+        <div className="px-4 py-3">
+          <p className="text-sm text-zinc-300 whitespace-pre-line max-h-24 overflow-y-auto leading-relaxed">{description}</p>
+        </div>
+      )}
+
+      {!editMode && q && (q.userRoles || q.accessControl || q.keyWorkflows || q.approvals || q.notifications) && (
+        <div className="px-4 pb-3 pt-3 border-t border-zinc-800/60 space-y-2">
+          {q.userRoles && <QuestionRow label="Users & Roles" value={q.userRoles} />}
+          {q.accessControl && <QuestionRow label="Access Control" value={q.accessControl} />}
+          {q.keyWorkflows && <QuestionRow label="Key Workflows" value={q.keyWorkflows} />}
+          {q.approvals && <QuestionRow label="Approvals" value={q.approvals} />}
+          {q.notifications && <QuestionRow label="Notifications" value={q.notifications} />}
+        </div>
+      )}
+
+      {showRefine && (
+        <div className="px-4 py-3 border-t border-zinc-800 bg-zinc-950 space-y-2">
+          <textarea
+            ref={refineRef}
+            value={refinement}
+            onChange={(e) => setRefinement(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); applyRefinement(); } }}
+            placeholder="How should the idea be refined? (⌘↵ to apply)"
+            rows={2}
+            className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-zinc-200 text-xs placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500 resize-none"
+          />
+          <div className="flex justify-end gap-2">
+            <button onClick={() => { setShowRefine(false); setRefinement(""); }} className="text-xs text-zinc-500 hover:text-zinc-300 px-3 py-1.5 rounded-lg transition-colors">Cancel</button>
+            <button
+              onClick={applyRefinement}
+              disabled={!refinement.trim()}
+              className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-800 disabled:text-zinc-600 text-white transition-colors"
+            >
+              Refine & Regenerate
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── view toggle ─────────────────────────────────────────────────────────────
 
 function ViewToggle({
@@ -537,57 +696,77 @@ export default function WorkspacePage() {
 
     if (hasGenerated.current) return;
     hasGenerated.current = true;
+    runGeneration(proj);
+  }, [router]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function runGeneration(proj: Project) {
     streamAccumRef.current = {};
     setIsGenerating(true);
-
-    (async () => {
-      try {
-        const res = await fetch("/api/generate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ idea: proj.idea, mode: proj.mode }),
-        });
-        if (!res.ok || !res.body) throw new Error("Generation failed");
-
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
-        const collected: Artifacts = {};
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n");
-          buffer = lines.pop() ?? "";
-          for (const line of lines) {
-            if (!line.trim()) continue;
-            const parsed = JSON.parse(line);
-            if (parsed.error) throw new Error(parsed.error);
-            if (parsed.chunk !== undefined) {
-              const t = parsed.type as ArtifactType;
-              streamAccumRef.current[t] = (streamAccumRef.current[t] ?? "") + parsed.chunk;
-              const text = streamAccumRef.current[t]!;
-              setStreamingContent((prev) => ({ ...prev, [t]: text }));
-            } else if (parsed.done) {
-              const t = parsed.type as ArtifactType;
-              const final = streamAccumRef.current[t] ?? "";
-              collected[t] = final;
-              setArtifacts((prev) => ({ ...prev, [t]: final }));
-              setStreamingContent((prev) => { const next = { ...prev }; delete next[t]; return next; });
-            }
+    setError(null);
+    const collected: Artifacts = {};
+    try {
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idea: proj.idea, mode: proj.mode }),
+      });
+      if (!res.ok || !res.body) throw new Error("Generation failed");
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          const parsed = JSON.parse(line);
+          if (parsed.error) throw new Error(parsed.error);
+          if (parsed.chunk !== undefined) {
+            const t = parsed.type as ArtifactType;
+            streamAccumRef.current[t] = (streamAccumRef.current[t] ?? "") + parsed.chunk;
+            setStreamingContent((prev) => ({ ...prev, [t]: streamAccumRef.current[t]! }));
+          } else if (parsed.done) {
+            const t = parsed.type as ArtifactType;
+            const final = streamAccumRef.current[t] ?? "";
+            collected[t] = final;
+            setArtifacts((prev) => ({ ...prev, [t]: final }));
+            setStreamingContent((prev) => { const next = { ...prev }; delete next[t]; return next; });
           }
         }
-
-        saveArtifacts(collected);
-        artifactsRef.current = collected;
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Unknown error");
-      } finally {
-        setIsGenerating(false);
       }
-    })();
-  }, [router]);
+      saveArtifacts(collected);
+      artifactsRef.current = collected;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unknown error");
+    } finally {
+      setIsGenerating(false);
+    }
+  }
+
+  function handleUpdateIdea(newDescription: string) {
+    const proj = projectRef.current;
+    if (!proj) return;
+    const q = proj.questionnaire;
+    const ideaParts = [newDescription];
+    if (q?.userRoles) ideaParts.push(`Users & roles: ${q.userRoles}`);
+    if (q?.accessControl) ideaParts.push(`Access control: ${q.accessControl}`);
+    if (q?.keyWorkflows) ideaParts.push(`Key workflows: ${q.keyWorkflows}`);
+    if (q?.approvals) ideaParts.push(`Approvals: ${q.approvals}`);
+    if (q?.notifications) ideaParts.push(`Notifications: ${q.notifications}`);
+    const updated: Project = { ...proj, description: newDescription, idea: ideaParts.join("\n\n") };
+    setProject(updated);
+    projectRef.current = updated;
+    sessionStorage.setItem("sdlc_project", JSON.stringify(updated));
+    setArtifacts({});
+    artifactsRef.current = {};
+    setStreamingContent({});
+    streamAccumRef.current = {};
+    sessionStorage.removeItem("sdlc_artifacts");
+    runGeneration(updated);
+  }
 
   // Streaming refinement — handles NDJSON from /api/feedback
   const handleStartRefinement = useCallback(async (type: ArtifactType, refinementText: string) => {
@@ -784,11 +963,7 @@ export default function WorkspacePage() {
 
         {!error && project && (
           <>
-            {/* Idea context */}
-            <div className="mb-6 px-4 py-3 rounded-xl bg-zinc-900 border border-zinc-800">
-              <p className="text-xs text-zinc-500 mb-0.5">Project idea</p>
-              <p className="text-sm text-zinc-300 whitespace-pre-line">{project.idea}</p>
-            </div>
+            <IdeaPanel project={project} onUpdateIdea={handleUpdateIdea} />
 
             {/* View toggle — in body */}
             <ViewToggle active={activeView} onChange={handleViewChange} />
@@ -813,10 +988,11 @@ export default function WorkspacePage() {
             {/* Artifacts grid (business / technical) */}
             {activeView !== "architecture" && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {artifactTypes.map((type) => (
+                {artifactTypes.map((type, i) => (
                   <ArtifactCard
                     key={type}
                     type={type}
+                    index={i}
                     content={artifacts[type]}
                     streamingText={streamingContent[type]}
                     onStartRefinement={handleStartRefinement}

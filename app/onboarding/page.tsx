@@ -44,6 +44,7 @@ export default function OnboardingPage() {
   const saveOnboarding = useMutation(api.onboarding.save);
   const [onboardingId] = useState<Id<"onboarding"> | null>(null);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [animDir, setAnimDir] = useState<"forward" | "back">("forward");
   const [completedSteps, setCompletedSteps] = useState<Set<StepId>>(new Set());
   const [payload, setPayload] = useState<OnboardingPayload>(createEmptyPayload());
 
@@ -61,6 +62,7 @@ export default function OnboardingPage() {
 
   function goToStep(index: number) {
     if (index >= 0 && index < STEP_ORDER.length) {
+      setAnimDir(index > currentStepIndex ? "forward" : "back");
       if (index > currentStepIndex) {
         setCompletedSteps((prev) => new Set(prev).add(currentStepId));
       }
@@ -172,6 +174,14 @@ export default function OnboardingPage() {
       id: id,
       name: payload.toolDescription.split(" ").slice(0, 6).join(" "),
       idea: ideaParts.join("\n\n"),
+      description: payload.toolDescription,
+      questionnaire: {
+        userRoles: payload.userRoles || undefined,
+        accessControl: payload.accessControl || undefined,
+        keyWorkflows: payload.keyWorkflows || undefined,
+        approvals: payload.approvals || undefined,
+        notifications: payload.notifications || undefined,
+      },
       mode: payload.projectMode,
       dashboardStyle: "technical",
       createdAt: Date.now(),
@@ -199,7 +209,7 @@ export default function OnboardingPage() {
     }
   }
 
-  const userName = "John Doe"; // Would come from auth
+  const userName = "Jose Luis Latorre";
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -212,58 +222,63 @@ export default function OnboardingPage() {
 
       <main className="flex flex-1 justify-center px-4 py-6 sm:px-6 lg:px-8">
         <div className="w-full max-w-[1280px] rounded-xl bg-card-bg min-h-[calc(100vh-160px)] flex flex-col items-center justify-center relative">
-          {currentStepId === "start" && (
-            <WelcomeStep userName={userName} onStart={handleNext} />
-          )}
+          <div
+            key={currentStepIndex}
+            className={`flex flex-col items-center w-full flex-1 justify-center ${animDir === "forward" ? "step-enter-next" : "step-enter-prev"}`}
+          >
+            {currentStepId === "start" && (
+              <WelcomeStep userName={userName} onStart={handleNext} />
+            )}
 
-          {currentStepId === "projectMode" && (
-            <ProjectModeStep
-              projectMode={payload.projectMode}
-              onChange={(mode) => updatePayload({ projectMode: mode })}
-              onContinue={handleNext}
-            />
-          )}
+            {currentStepId === "projectMode" && (
+              <ProjectModeStep
+                projectMode={payload.projectMode}
+                onChange={(mode) => updatePayload({ projectMode: mode })}
+                onContinue={handleNext}
+              />
+            )}
 
-          {currentStepId === "toolIdea" && (
-            <ToolIdeaStep
-              value={payload.toolDescription}
-              onChange={(v) => updatePayload({ toolDescription: v })}
-              onContinue={handleToolIdeaContinue}
-            />
-          )}
+            {currentStepId === "toolIdea" && (
+              <ToolIdeaStep
+                value={payload.toolDescription}
+                onChange={(v) => updatePayload({ toolDescription: v })}
+                onContinue={handleToolIdeaContinue}
+              />
+            )}
 
-          {currentStepId === "usersRoles" && (
-            <UsersRolesStep
-              userRoles={payload.userRoles}
-              accessControl={payload.accessControl}
-              onChange={updatePayload}
-              onContinue={handleNext}
-              streamingFields={prefillStreaming}
-            />
-          )}
+            {currentStepId === "usersRoles" && (
+              <UsersRolesStep
+                userRoles={payload.userRoles}
+                accessControl={payload.accessControl}
+                onChange={updatePayload}
+                onContinue={handleNext}
+                streamingFields={prefillStreaming}
+              />
+            )}
 
-          {currentStepId === "workflows" && (
-            <WorkflowsStep
-              keyWorkflows={payload.keyWorkflows}
-              approvals={payload.approvals}
-              notifications={payload.notifications}
-              onChange={updatePayload}
-              onContinue={handleNext}
-              streamingFields={prefillStreaming}
-            />
-          )}
+            {currentStepId === "workflows" && (
+              <WorkflowsStep
+                keyWorkflows={payload.keyWorkflows}
+                approvals={payload.approvals}
+                notifications={payload.notifications}
+                onChange={updatePayload}
+                onContinue={handleNext}
+                streamingFields={prefillStreaming}
+              />
+            )}
 
-          {currentStepId === "files" && (
-            <FilesStep
-              files={payload.uploadedFiles}
-              onChange={(files) => updatePayload({ uploadedFiles: files })}
-              onContinue={handleNext}
-            />
-          )}
+            {currentStepId === "files" && (
+              <FilesStep
+                files={payload.uploadedFiles}
+                onChange={(files) => updatePayload({ uploadedFiles: files })}
+                onContinue={handleNext}
+              />
+            )}
 
-          {currentStepId === "review" && (
-            <ReviewStep payload={payload} onSubmit={handleSubmit} />
-          )}
+            {currentStepId === "review" && (
+              <ReviewStep payload={payload} onSubmit={handleSubmit} />
+            )}
+          </div>
 
           <BottomNav
             onBack={handleBack}

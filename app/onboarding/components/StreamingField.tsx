@@ -21,6 +21,11 @@ interface StreamingFieldProps {
   rows: number;
 }
 
+function toMd(text: string) {
+  // Normalize unicode bullets → markdown list syntax so ReactMarkdown renders <ul>
+  return text.replace(/^[•·‣▸] /gm, "- ");
+}
+
 export function StreamingField({ label, value, streamingText, onChange, placeholder, rows }: StreamingFieldProps) {
   const isStreaming = streamingText !== undefined;
   const hasContent = value.trim().length > 0;
@@ -144,11 +149,17 @@ export function StreamingField({ label, value, streamingText, onChange, placehol
         )}
       </div>
 
-      {/* Streaming view */}
+      {/* Streaming view — renders markdown live */}
       {isStreaming && (
-        <div className="relative px-3 py-2.5 text-sm text-foreground whitespace-pre-wrap leading-relaxed" style={{ minHeight: `${rows * 1.625}rem` }}>
-          {streamingText}
-          <span className="inline-block w-0.5 bg-accent animate-pulse align-middle ml-0.5" style={{ height: "1em" }} />
+        <div className="px-3 py-2.5" style={{ minHeight: `${rows * 1.625}rem` }}>
+          <div className="prose prose-sm max-w-none text-foreground
+            [&>p]:mb-1.5 [&>p]:text-sm [&>p]:text-foreground
+            [&>ul]:list-disc [&>ul]:pl-4 [&>ul]:mb-1.5 [&>ul>li]:text-sm [&>ul>li]:text-foreground
+            [&>ol]:list-decimal [&>ol]:pl-4 [&>ol]:mb-1.5 [&>ol>li]:text-sm [&>ol>li]:text-foreground
+            [&>strong]:font-semibold [&>strong]:text-foreground">
+            <ReactMarkdown>{toMd(streamingText ?? "")}</ReactMarkdown>
+            <span className="inline-block w-0.5 bg-accent animate-pulse align-middle ml-0.5" style={{ height: "1em" }} />
+          </div>
         </div>
       )}
 
@@ -161,7 +172,7 @@ export function StreamingField({ label, value, streamingText, onChange, placehol
               [&>ul]:list-disc [&>ul]:pl-4 [&>ul]:mb-1.5 [&>ul>li]:text-sm [&>ul>li]:text-foreground
               [&>ol]:list-decimal [&>ol]:pl-4 [&>ol]:mb-1.5 [&>ol>li]:text-sm [&>ol>li]:text-foreground
               [&>strong]:font-semibold [&>strong]:text-foreground">
-              <ReactMarkdown>{value}</ReactMarkdown>
+              <ReactMarkdown>{toMd(value)}</ReactMarkdown>
             </div>
           </div>
         </div>

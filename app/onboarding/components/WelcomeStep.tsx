@@ -12,11 +12,11 @@ export function WelcomeStep({ userName, onStart }: WelcomeStepProps) {
 
   return (
     <div className="max-w-2xl px-8 py-12">
-      <h1 className="text-3xl font-semibold text-foreground mb-6">
+      <h1 className="text-4xl font-bold text-foreground mb-6">
         {t("onboarding.welcome.greeting", { name: userName })}
       </h1>
 
-      <p className="text-foreground-secondary text-base leading-relaxed mb-2">
+      <p className="text-foreground-secondary text-lg leading-relaxed mb-2">
         {t("onboarding.welcome.description")}{" "}
         <span className="italic text-accent">
           {t("onboarding.welcome.saveNote")}

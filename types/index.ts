@@ -14,7 +14,15 @@ export type ArtifactType =
 export interface Project {
   id: string;
   name: string;
-  idea: string;
+  idea: string;         // combined context sent to generation agents
+  description?: string; // raw tool description from onboarding step 2
+  questionnaire?: {
+    userRoles?: string;
+    accessControl?: string;
+    keyWorkflows?: string;
+    approvals?: string;
+    notifications?: string;
+  };
   mode: ProjectMode;
   dashboardStyle: DashboardStyle;
   createdAt: number;

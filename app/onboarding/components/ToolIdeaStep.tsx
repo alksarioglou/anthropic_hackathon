@@ -36,7 +36,7 @@ export function ToolIdeaStep({ value, onChange, onContinue }: ToolIdeaStepProps)
           <h2 className="text-3xl font-bold text-foreground mb-3">
             {t("onboarding.toolIdea.title")}
           </h2>
-          <p className="text-foreground-secondary text-sm leading-relaxed mb-4">
+          <p className="text-foreground-secondary text-base leading-relaxed mb-4">
             {t("onboarding.toolIdea.question")}
           </p>
 
@@ -55,7 +55,7 @@ export function ToolIdeaStep({ value, onChange, onContinue }: ToolIdeaStepProps)
           <textarea
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            placeholder={t("onboarding.toolIdea.placeholder")}
+            placeholder="Ask anything…"
             rows={6}
             className="w-full rounded-lg border border-input-border bg-input-bg p-4 text-foreground placeholder:text-foreground-muted outline-none transition-colors focus:border-input-border-focus resize-none"
           />

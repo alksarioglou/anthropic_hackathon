@@ -29,7 +29,7 @@ export function UsersRolesStep({
           <h2 className="text-3xl font-bold text-foreground mb-3">
             {t("onboarding.usersRoles.title")}
           </h2>
-          <p className="text-foreground-secondary text-sm leading-relaxed">
+          <p className="text-foreground-secondary text-base leading-relaxed">
             {t("onboarding.usersRoles.description")}
           </p>
         </div>

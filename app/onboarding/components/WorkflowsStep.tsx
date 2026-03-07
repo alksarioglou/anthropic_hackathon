@@ -31,7 +31,7 @@ export function WorkflowsStep({
             <h2 className="text-3xl font-bold text-foreground mb-3">
               {t("onboarding.workflows.title")}
             </h2>
-            <p className="text-foreground-secondary text-sm leading-relaxed">
+            <p className="text-foreground-secondary text-base leading-relaxed">
               {t("onboarding.workflows.description")}
             </p>
           </div>
