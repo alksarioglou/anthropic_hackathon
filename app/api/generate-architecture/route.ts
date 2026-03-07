@@ -150,6 +150,7 @@ export async function POST(req: Request) {
             max_tokens: 4096,
             system: SYSTEM_PROMPT,
             tools: TOOLS,
+            tool_choice: { type: "any" },
             messages,
           });
 
@@ -264,6 +265,7 @@ Write in clear prose (no bullet points), aimed at a technical architect audience
         emit("done", {});
       } catch (err) {
         const message = err instanceof Error ? err.message : "Unknown error";
+        console.error("[generate-architecture] Error:", message, err);
         emit("error", { message });
       } finally {
         controller.close();

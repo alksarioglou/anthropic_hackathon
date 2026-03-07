@@ -59,6 +59,30 @@ export const updateArtifact = mutation({
   },
 });
 
+export const saveArchitecture = mutation({
+  args: {
+    projectId: v.id("projects"),
+    archGraphJson: v.string(),
+    archProse: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("artifacts")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .first();
+    if (existing) {
+      await ctx.db.patch(existing._id, { archGraphJson: args.archGraphJson, archProse: args.archProse });
+      return existing._id;
+    }
+    return await ctx.db.insert("artifacts", {
+      projectId: args.projectId,
+      status: "completed",
+      archGraphJson: args.archGraphJson,
+      archProse: args.archProse,
+    });
+  },
+});
+
 export const saveCompleted = mutation({
   args: {
     projectId: v.id("projects"),
