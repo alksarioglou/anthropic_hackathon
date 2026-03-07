@@ -69,7 +69,7 @@ Provide ONLY the updated artifact content. Preserve the existing format and stru
 
   try {
     const stream = await client.messages.create({
-      model: "claude-haiku-4-5-20251001",
+      model: "claude-sonnet-4-20250514",
       max_tokens: 1500,
       stream: true,
       messages: [{ role: "user", content: prompt }],

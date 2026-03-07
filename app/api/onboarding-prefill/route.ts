@@ -86,7 +86,7 @@ async function* streamField(
 ): AsyncGenerator<string> {
   try {
     const stream = await client.messages.create({
-      model: "claude-haiku-4-5-20251001",
+      model: "claude-sonnet-4-20250514",
       max_tokens: 400,
       stream: true,
       messages: [{ role: "user", content: prompt }],
@@ -98,7 +98,9 @@ async function* streamField(
     }
   } catch (err: unknown) {
     const status = (err as { status?: number })?.status;
-    if (status === 429 && attempt < 4) {
+    const errStr = String(err);
+    const isRetryable = status === 429 || status === 529 || errStr.includes("overloaded");
+    if (isRetryable && attempt < 4) {
       const waitMs = Math.min(8_000 * Math.pow(2, attempt), 60_000);
       await new Promise((r) => setTimeout(r, waitMs));
       yield* streamField(fieldKey, prompt, attempt + 1);
