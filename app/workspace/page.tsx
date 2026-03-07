@@ -1078,7 +1078,7 @@ function WorkspaceContent() {
             {project && (
               <>
                 <IdeaPanel project={project} onUpdateIdea={handleUpdateIdea} />
-                <ViewToggle active={activeView} onChange={handleViewChange} />
+                <SidebarViewSwitch active={activeView} onChange={handleViewChange} />
               </>
             )}
           </div>
