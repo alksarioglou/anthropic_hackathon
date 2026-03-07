@@ -11,11 +11,8 @@ export const create = mutation({
     dashboardStyle: v.union(v.literal("business"), v.literal("technical")),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
     return await ctx.db.insert("projects", {
       ...args,
-      userId: identity.subject,
       createdAt: Date.now(),
     });
   },
@@ -40,13 +37,7 @@ export const getByOnboarding = query({
 
 export const list = query({
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return [];
-    return await ctx.db
-      .query("projects")
-      .withIndex("by_user", (q) => q.eq("userId", identity.subject))
-      .order("desc")
-      .collect();
+    return await ctx.db.query("projects").order("desc").collect();
   },
 });
 

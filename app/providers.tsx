@@ -1,9 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { ConvexReactClient } from "convex/react";
-import { ConvexProviderWithClerk } from "convex/react-clerk";
-import { useAuth } from "@clerk/nextjs";
+import { ConvexProvider, ConvexReactClient } from "convex/react";
 import { ThemeProvider } from "@/lib/ThemeProvider";
 import { LocaleProvider } from "@/lib/i18n";
 import type { ReactNode } from "react";
@@ -37,13 +35,13 @@ function ClerkDevSuppressor() {
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
-    <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
+    <ConvexProvider client={convex}>
       <ThemeProvider>
         <LocaleProvider>
           <ClerkDevSuppressor />
           {children}
         </LocaleProvider>
       </ThemeProvider>
-    </ConvexProviderWithClerk>
+    </ConvexProvider>
   );
 }

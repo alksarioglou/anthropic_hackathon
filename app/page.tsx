@@ -10,7 +10,7 @@ export default function RootPage() {
 
   useEffect(() => {
     if (!isLoaded) return;
-    router.replace(isSignedIn ? "/home" : "/intro");
+    router.replace(isSignedIn ? "/home" : "/landing");
   }, [isLoaded, isSignedIn, router]);
 
   return null;

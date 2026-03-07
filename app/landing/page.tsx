@@ -36,7 +36,7 @@ export default function IntroPage() {
       {/* Header */}
       <header className="border-b border-border bg-nav-bg">
         <div className="flex h-14 items-center px-6">
-          <MaturaLogo className="h-7" href="/intro" />
+          <MaturaLogo className="h-7" href="/landing" />
         </div>
       </header>
 
