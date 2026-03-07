@@ -1037,6 +1037,14 @@ function WorkspaceContent() {
                 {refinementCount} refinement{refinementCount !== 1 ? "s" : ""} applied
               </span>
             )}
+            {projectId && (
+              <button
+                onClick={() => router.push(`/dashboard?projectId=${projectId}`)}
+                className="rounded-full border border-border px-4 py-1.5 text-xs font-medium text-foreground-secondary hover:text-foreground hover:border-foreground-muted transition-colors"
+              >
+                Dashboard
+              </button>
+            )}
             <button
               onClick={() => router.push("/home")}
               className="rounded-full border border-border px-4 py-1.5 text-xs font-medium text-foreground-secondary hover:text-foreground hover:border-foreground-muted transition-colors"

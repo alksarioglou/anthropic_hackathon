@@ -1,13 +1,14 @@
 "use client";
 
 import { Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { UserButton } from "@clerk/nextjs";
 import { useTranslation } from "@/lib/i18n";
 import { MaturaLogo } from "@/components/MaturaLogo";
+import ReactMarkdown from "react-markdown";
 import { sampleData } from "@/lib/dashboard-data";
 
 // Shared panels
@@ -31,6 +32,7 @@ import { SlaReleasePanel } from "./components/SlaReleasePanel";
 
 function DashboardContent() {
   const { t } = useTranslation();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const projectId = searchParams.get("projectId") as Id<"projects"> | null;
   const onboardingId = searchParams.get("onboardingId") as Id<"onboarding"> | null;
@@ -57,9 +59,9 @@ function DashboardContent() {
   return (
     <div className="min-h-screen bg-background">
       {/* Top bar */}
-      <nav className="flex items-center justify-between border-b border-border bg-nav-bg px-4 sm:px-6 lg:px-8 h-16 sticky top-0 z-10">
+      <nav className="flex items-center justify-between border-b border-border bg-nav-bg px-4 sm:px-6 lg:px-8 h-14 sticky top-0 z-10">
         <MaturaLogo className="h-7" />
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <span className={`text-xs px-3 py-1 rounded-full font-medium ${
             projectMode === "internal"
               ? "bg-accent/10 text-accent"
@@ -67,9 +69,14 @@ function DashboardContent() {
           }`}>
             {projectMode === "internal" ? "Internal" : "External"}
           </span>
-          <span className="text-sm text-foreground-secondary">
-            {t("dashboard.title")}
-          </span>
+          {projectId && (
+            <button
+              onClick={() => router.push(`/workspace?projectId=${projectId}`)}
+              className="rounded-full border border-border px-4 py-1.5 text-xs font-medium text-foreground-secondary hover:text-foreground hover:border-foreground-muted transition-colors"
+            >
+              Workspace
+            </button>
+          )}
           <UserButton />
         </div>
       </nav>
@@ -99,65 +106,11 @@ function DashboardContent() {
                   content ? (
                     <div key={title} className="rounded-lg border border-border p-4 max-h-80 overflow-y-auto">
                       <h4 className="text-sm font-semibold text-foreground mb-2">{title}</h4>
-                      <p className="text-xs text-foreground-secondary whitespace-pre-wrap">{content}</p>
+                      <div className="md-content"><ReactMarkdown>{content}</ReactMarkdown></div>
                     </div>
                   ) : null
                 )}
               </div>
-            </section>
-          )}
-
-          {/* ─── Generate Tech Specs (legacy / fallback) ─── */}
-          {resolvedOnboardingId && !projectArtifacts && (
-            <section className="rounded-lg border border-border bg-background p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-foreground">Technical Specifications</h3>
-                  <p className="text-sm text-foreground-secondary mt-1">
-                    {!techSpecs && "Generate a complete technical plan from your onboarding input."}
-                    {techSpecs?.status === "pending" && "Ready to generate..."}
-                    {techSpecs?.status === "generating" && "AI agents are generating your technical specs..."}
-                    {techSpecs?.status === "completed" && "Technical specs generated successfully."}
-                    {techSpecs?.status === "error" && `Error: ${techSpecs.error}`}
-                  </p>
-                </div>
-                <button
-                  onClick={() => generateTechSpecs({ onboardingId: resolvedOnboardingId })}
-                  disabled={techSpecs?.status === "generating"}
-                  className="rounded-full bg-accent px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                >
-                  {techSpecs?.status === "generating" ? (
-                    <>
-                      <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      Generating...
-                    </>
-                  ) : techSpecs?.status === "completed" ? (
-                    "Regenerate Tech Specs"
-                  ) : (
-                    "Generate Tech Specs"
-                  )}
-                </button>
-              </div>
-
-              {techSpecs?.status === "completed" && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-                  {([
-                    ["Vision", techSpecs.vision],
-                    ["Requirements", techSpecs.requirements],
-                    ["Architecture", techSpecs.architecture],
-                    ["Frameworks", techSpecs.frameworks],
-                    ["Tests", techSpecs.tests],
-                    ["Backlog", techSpecs.backlog],
-                  ] as const).map(([title, content]) =>
-                    content ? (
-                      <div key={title} className="rounded-lg border border-border p-4 max-h-80 overflow-y-auto">
-                        <h4 className="text-sm font-semibold text-foreground mb-2">{title}</h4>
-                        <p className="text-xs text-foreground-secondary whitespace-pre-wrap">{content}</p>
-                      </div>
-                    ) : null
-                  )}
-                </div>
-              )}
             </section>
           )}
 

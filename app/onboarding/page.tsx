@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation } from "convex/react";
+import { useUser } from "@clerk/nextjs";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { createEmptyPayload, type OnboardingPayload } from "@/lib/onboarding-payload";
@@ -201,7 +202,8 @@ export default function OnboardingPage() {
     }
   }
 
-  const userName = "Jose Luis Latorre";
+  const { user } = useUser();
+  const userName = user?.firstName ?? user?.fullName ?? "there";
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
